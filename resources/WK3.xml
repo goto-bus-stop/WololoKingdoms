@@ -55,14 +55,14 @@
      <map id="-14" name="serengeti" drsId="54253" string="55005" description="55006" />
      <map id="-15" name="socotra" drsId="54254" string="55007" description="55008" />
      <!-- AK Real World maps -->
-     <map id="-16" name="amazon" drsId="55020" scxDrsId="56020" string="55009" description="55010" />
-     <map id="-17" name="bohemia" drsId="55021" scxDrsId="56021" string="55011" description="55012" />
-     <map id="-18" name="china" drsId="55022" scxDrsId="56022" string="55013" description="55014" />
-     <map id="-19" name="horn-of-africa" drsId="55023" scxDrsId="56023" string="55015" description="55016" />
-     <map id="-20" name="india" drsId="55024" scxDrsId="56024" string="55017" description="55018" />
-     <map id="-21" name="madagascar" drsId="55025" scxDrsId="56025" string="55019" description="55020" />
-     <map id="-22" name="west-africa" drsId="55026" scxDrsId="56026" string="55021" description="55022" />
-     <map id="-23" name="earth" drsId="55027" scxDrsId="56027" string="55023" description="55024" />
+     <!--map id="-16" name="amazon" drsId="55020" scxDrsId="56020" string="55009" description="55010" /-->
+     <!--map id="-17" name="bohemia" drsId="55021" scxDrsId="56021" string="55011" description="55012" /-->
+     <!--map id="-18" name="china" drsId="55022" scxDrsId="56022" string="55013" description="55014" /-->
+     <!--map id="-19" name="horn-of-africa" drsId="55023" scxDrsId="56023" string="55015" description="55016" /-->
+     <!--map id="-20" name="india" drsId="55024" scxDrsId="56024" string="55017" description="55018" /-->
+     <!--map id="-21" name="madagascar" drsId="55025" scxDrsId="56025" string="55019" description="55020" /-->
+     <!--map id="-22" name="west-africa" drsId="55026" scxDrsId="56026" string="55021" description="55022" /-->
+     <!--map id="-23" name="earth" drsId="55027" scxDrsId="56027" string="55023" description="55024" /-->
      <!-- Rise of the Rajas -->
      <map id="-24" name="bog-islands" drsId="54255" string="55025" description="55026" />
      <map id="-25" name="mangrove-jungle" drsId="54256" string="55027" description="55028" />
@@ -70,9 +70,9 @@
      <map id="-27" name="sandbank" drsId="54258" string="55031" description="55032" />
      <map id="-28" name="water-nomad" drsId="54259" string="55033" description="55034" />
      <!-- RoR Real World maps -->
-     <map id="-29" name="indochina" drsId="55028" scxDrsId="56028" string="55035" description="55036" />
-     <map id="-30" name="indonesia" drsId="55029" scxDrsId="56029" string="55037" description="55038" />
-     <map id="-31" name="philippines" drsId="55030" scxDrsId="56030" string="55039" description="55040" />
-     <map id="-32" name="strait-of-malacca" drsId="55031" scxDrsId="56031" string="55041" description="55042" />
+     <!--map id="-29" name="indochina" drsId="55028" scxDrsId="56028" string="55035" description="55036" /-->
+     <!--map id="-30" name="indonesia" drsId="55029" scxDrsId="56029" string="55037" description="55038" /-->
+     <!--map id="-31" name="philippines" drsId="55030" scxDrsId="56030" string="55039" description="55040" /-->
+     <!--map id="-32" name="strait-of-malacca" drsId="55031" scxDrsId="56031" string="55041" description="55042" /-->
    </random-maps>
 </configuration>

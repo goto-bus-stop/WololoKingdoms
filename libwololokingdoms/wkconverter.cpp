@@ -105,6 +105,10 @@ std::map<std::string, int> rmsDrsId = {
   {"real_world_malacca", 55031}
 };
 
+/**
+ * TODO These need a conversion step to work
+ * to fix unit IDs and stuff
+ */
 std::map<std::string, int> scxDrsId = {
   // AK: Real World Maps
   {"real_world_amazon", 56020},
