@@ -63,6 +63,65 @@ void WKConverter::loadGameStrings(std::map<int,std::string>& langReplacement) {
     translationFile.close();
 }
 
+std::map<std::string, int> rmsDrsId = {
+  // Forgotten
+  {"acropolis", 54240},
+  {"budapest", 54241},
+  {"cenotes", 54242},
+  {"cityoflakes", 54243},
+  {"goldenpit", 54244},
+  {"hideout", 54245},
+  {"hillfort", 54246},
+  {"lombardia", 54247},
+  {"steppe", 54248},
+  {"valley", 54249},
+  {"megarandom", 54250},
+
+  // African Kingdoms
+  {"mountain pass", 54251},
+  {"nile delta", 54252},
+  {"serengeti", 54253},
+  {"socotra", 54254},
+  // AK: Real World Maps
+  {"real_world_amazon", 55020},
+  {"real_world_bohemia", 55021},
+  {"real_world_china", 55022},
+  {"real_world_eastafrica", 55023},
+  {"real_world_india", 55024},
+  {"real_world_madagascar", 55025},
+  {"real_world_westafrica", 55026},
+  {"real_world_world", 55027},
+
+  // Rise of the Rajas
+  {"bog_islands", 54255},
+  {"mangrove_jungle", 54256},
+  {"pacific_islands", 54257},
+  {"sandbank", 54258},
+  {"water_nomad", 54259},
+  // RoR: Real World Maps
+  {"real_world_indochina", 55028},
+  {"real_world_indonesia", 55029},
+  {"real_world_philippines", 55030},
+  {"real_world_malacca", 55031}
+};
+
+std::map<std::string, int> scxDrsId = {
+  // AK: Real World Maps
+  {"real_world_amazon", 56020},
+  {"real_world_bohemia", 56021},
+  {"real_world_china", 56022},
+  {"real_world_eastafrica", 56023},
+  {"real_world_india", 56024},
+  {"real_world_madagascar", 56025},
+  {"real_world_westafrica", 56026},
+  {"real_world_world", 56027},
+  // RoR: Real World Maps
+  {"real_world_indochina", 56028},
+  {"real_world_indonesia", 56029},
+  {"real_world_philippines", 56030},
+  {"real_world_malacca", 56031}
+};
+
 void WKConverter::indexDrsFiles(fs::path const &src, bool expansionFiles, bool terrainFiles) {
     /*
      * Index files to be written into the drs into a map, with the ID the file will have later
@@ -96,6 +155,18 @@ void WKConverter::indexDrsFiles(fs::path const &src, bool expansionFiles, bool t
             else if (extension == ".wav") {
                 int id = atoi(src.stem().string().c_str());
                 wavFiles[id] = src;
+            } else if (extension == ".rms" || extension == ".rms2") {
+                auto name = tolower(src.stem().string());
+                if (rmsDrsId.find(name) != rmsDrsId.end()) {
+                  auto id = rmsDrsId.at(name);
+                  rmsFiles[id] = src;
+                }
+            } else if (extension == ".scx") {
+                auto name = tolower(src.stem().string());
+                if (scxDrsId.find(name) != scxDrsId.end()) {
+                  auto id = scxDrsId.at(name);
+                  rmsFiles[id] = src;
+                }
             }
         }
     }
@@ -120,10 +191,60 @@ void WKConverter::copyHistoryFiles(fs::path inputDir, fs::path outputDir) {
     }
 }
 
+std::map<std::string, int> hdToAoCNameMapping = {
+  {"RMS_MOUNTAINPASS", 55001},
+  {"RMS_MOUNTAINPASS_ROLLOVER", 55002},
+  {"RMS_NILEDELTA", 55003},
+  {"RMS_NILEDELTA_ROLLOVER", 55004},
+  {"RMS_SERENGETI", 55005},
+  {"RMS_SERENGETI_ROLLOVER", 55006},
+  {"RMS_SOCOTRA", 55007},
+  {"RMS_SOCOTRA_ROLLOVER", 55008},
+  {"RWM_AMAZON", 55009},
+  {"RWM_AMAZON_ROLLOVER", 55010},
+  {"RWM_BOHEMIA", 55011},
+  {"RWM_BOHEMIA_ROLLOVER", 55012},
+  {"RWM_CHINA", 55013},
+  {"RWM_CHINA_ROLLOVER", 55014},
+  {"RWM_HORNOFAFRICA", 55015},
+  {"RWM_HORNOFAFRICA_ROLLOVER", 55016},
+  {"RWM_INDIA", 55017},
+  {"RWM_INDIA_ROLLOVER", 55018},
+  {"RWM_MADAGASCAR", 55019},
+  {"RWM_MADAGASCAR_ROLLOVER", 55020},
+  {"RWM_WESTAFRICA", 55021},
+  {"RWM_WESTAFRICA_ROLLOVER", 55022},
+  {"RWM_EARTH", 55023},
+  {"RWM_EARTH_ROLLOVER", 55024},
+  {"RMS_BOGISLANDS", 55025},
+  {"RMS_BOGISLANDS_ROLLOVER", 55026},
+  {"RMS_MANGROVEJUNGLE", 55027},
+  {"RMS_MANGROVEJUNGLE_ROLLOVER", 55028},
+  {"RMS_PACIFICISLANDS", 55029},
+  {"RMS_PACIFICISLANDS_ROLLOVER", 55030},
+  {"RMS_SANDBANK", 55031},
+  {"RMS_SANDBANK_ROLLOVER", 55032},
+  {"RMS_WATERNOMAD", 55033},
+  {"RMS_WATERNOMAD_ROLLOVER", 55034},
+  {"RWM_INDOCHINA", 55035},
+  {"RWM_INDOCHINA_ROLLOVER", 55036},
+  {"RWM_INDONESIA", 55037},
+  {"RWM_INDONESIA_ROLLOVER", 55038},
+  {"RWM_PHILIPPINES", 55039},
+  {"RWM_PHILIPPINES_ROLLOVER", 55040},
+  {"RWM_MALACCA", 55041},
+  {"RWM_MALACCA_ROLLOVER", 55042},
+};
+
 std::pair<int,std::string> WKConverter::getTextLine(std::string line) {
     int spaceIdx = line.find(' ');
     std::string number = line.substr(0, spaceIdx);
-    int nb = stoi(number);
+    int nb = 0;
+    if (hdToAoCNameMapping.find(number) != hdToAoCNameMapping.end()) {
+      nb = hdToAoCNameMapping[number];
+    } else {
+      nb = stoi(number);
+    }
     if (nb == 0xFFFF) {
         /*
          * this one seems to be used by AOC for dynamically-generated strings
@@ -492,12 +613,13 @@ void WKConverter::makeDrs(std::ofstream& out) {
 	end = std::next(start,8);
 	slpFiles.erase(start,end);
 
-	const int numberOfTables = 2; // slp and wav
+	const int numberOfTables = 3; // slp, wav, bina
 	int numberOfSlpFiles = slpFiles.size();
 	int numberOfWavFiles = wavFiles.size();
+   int numberOfBinaFiles = rmsFiles.size();
 	int offsetOfFirstFile = sizeof (DrsHeader) +
 			sizeof (DrsTableInfo) * numberOfTables +
-			sizeof (DrsFileInfo) * (numberOfSlpFiles + numberOfWavFiles);
+			sizeof (DrsFileInfo) * (numberOfSlpFiles + numberOfWavFiles + numberOfBinaFiles);
 	int offset = offsetOfFirstFile;
 
 
@@ -505,6 +627,7 @@ void WKConverter::makeDrs(std::ofstream& out) {
 
 	std::vector<DrsFileInfo> slpFileInfos;
 	std::vector<DrsFileInfo> wavFileInfos;
+	std::vector<DrsFileInfo> rmsFileInfos;
 
 	for (auto& it : slpFiles) {
 		DrsFileInfo slp;
@@ -531,6 +654,24 @@ void WKConverter::makeDrs(std::ofstream& out) {
 
 	}
     listener->increaseProgress(1); //68
+
+    std::string builtin_map_prefix =
+      "/* Not autoloaded for DRS maps */\r\n"
+      "#include_drs random_map.def 54000\r\n"
+      "\r\n";
+	for (auto& it : rmsFiles) {
+		DrsFileInfo rms;
+		size_t size = cfs::file_size(it.second);
+      auto ext = it.second.extension().string();
+      if (ext == ".rms" || ext == ".rms2") {
+        size += builtin_map_prefix.length();
+      }
+		rms.file_id = it.first;
+		rms.file_data_offset = offset;
+		rms.file_size = size;
+		offset += size;
+		rmsFileInfos.push_back(rms);
+   }
 
 	// header infos
 
@@ -561,6 +702,11 @@ void WKConverter::makeDrs(std::ofstream& out) {
 		(int) (sizeof (DrsHeader) +  sizeof (DrsFileInfo) * numberOfTables + sizeof (DrsFileInfo) * slpFileInfos.size()), // file_info_offset
 		(int) wavFileInfos.size() // num_files
 	};
+	DrsTableInfo const binaTableInfo = {
+		{ 'a', 'n', 'i', 'b' }, // file_extension, "bina" in reverse
+		(int) (sizeof (DrsHeader) +  sizeof (DrsFileInfo) * numberOfTables + sizeof (DrsFileInfo) * (slpFileInfos.size() + wavFileInfos.size())), // file_info_offset
+		(int) rmsFileInfos.size() // num_files
+	};
     listener->increaseProgress(1); //69
 
 
@@ -586,6 +732,10 @@ void WKConverter::makeDrs(std::ofstream& out) {
 	out.write(reinterpret_cast<const char *>(&wavTableInfo.file_info_offset), sizeof (DrsTableInfo::file_info_offset));
 	out.write(reinterpret_cast<const char *>(&wavTableInfo.num_files), sizeof (DrsTableInfo::num_files));
 
+	out.write(binaTableInfo.file_extension, sizeof (DrsTableInfo::file_extension));
+	out.write(reinterpret_cast<const char *>(&binaTableInfo.file_info_offset), sizeof (DrsTableInfo::file_info_offset));
+	out.write(reinterpret_cast<const char *>(&binaTableInfo.num_files), sizeof (DrsTableInfo::num_files));
+
     listener->increaseProgress(1); //70
 	// file infos
 	for (auto& it : slpFileInfos) {
@@ -602,6 +752,11 @@ void WKConverter::makeDrs(std::ofstream& out) {
 
 	}
     listener->increaseProgress(1); //72
+	for (auto& it : rmsFileInfos) {
+		out.write(reinterpret_cast<const char *>(&it.file_id), sizeof (DrsFileInfo::file_id));
+		out.write(reinterpret_cast<const char *>(&it.file_data_offset), sizeof (DrsFileInfo::file_data_offset));
+		out.write(reinterpret_cast<const char *>(&it.file_size), sizeof (DrsFileInfo::file_size));
+	}
 
     listener->setInfo("working$\n$workingDrs3");
 
@@ -619,6 +774,15 @@ void WKConverter::makeDrs(std::ofstream& out) {
 		out << srcStream.rdbuf();
         srcStream.close();
 
+	}
+	for (auto& it : rmsFiles) {
+		std::ifstream srcStream (it.second, std::ios::binary);
+      auto ext = it.second.extension().string();
+      if (ext == ".rms" || ext == ".rms2") {
+        out << builtin_map_prefix;
+      }
+		out << srcStream.rdbuf();
+        srcStream.close();
 	}
     listener->increaseProgress(1); //74
     out.close();

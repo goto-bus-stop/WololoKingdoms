@@ -117,6 +117,7 @@ private:
     std::set<int> aocSlpFiles;
     std::map<int, fs::path> slpFiles;
     std::map<int, fs::path> wavFiles;
+    std::map<int, fs::path> rmsFiles;
     std::map<std::string,fs::path> newTerrainFiles;
     std::vector<std::pair<int,std::string>> rmsCodeStrings;
     bool secondAttempt = false;

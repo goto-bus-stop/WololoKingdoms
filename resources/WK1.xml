@@ -28,4 +28,17 @@
 		<civilization id="22" name="magyar" soundFile="stream\magyars.mp3" scoutUnit="448" uniqueUnit="869" eliteUniqueUnit="871" uniqueUnitLine="869" uniqueUnitUpgrade="472" uniqueResearch="515" />
 		<civilization id="23" name="slavic" soundFile="stream\slavs.mp3" scoutUnit="448" uniqueUnit="876" eliteUniqueUnit="878" uniqueUnitLine="876" uniqueUnitUpgrade="504" uniqueResearch="513" />
 	</civilizations>
+   <random-maps>
+     <map id="-1" name="acropolis" drsId="54240" string="10914" description="30146" />
+     <map id="-2" name="budapest" drsId="54241" string="10915" description="30158" />
+     <map id="-3" name="cenotes" drsId="54242" string="10916" description="30148" />
+     <map id="-4" name="city-of-lakes" drsId="54243" string="10917" description="30149" />
+     <map id="-5" name="golden-pit" drsId="54244" string="10918" description="30150" />
+     <map id="-6" name="hideout" drsId="54245" string="10919" description="30151" />
+     <map id="-7" name="hill-fort" drsId="54246" string="10920" description="30152" />
+     <map id="-8" name="lombardia" drsId="54247" string="10921" description="30153" />
+     <map id="-9" name="steppe" drsId="54248" string="10922" description="30154" />
+     <map id="-10" name="valley" drsId="54249" string="10923" description="30155" />
+     <map id="-11" name="megarandom" drsId="54250" string="10924" description="30156" />
+   </random-maps>
 </configuration>

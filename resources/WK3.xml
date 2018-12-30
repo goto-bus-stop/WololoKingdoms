@@ -36,4 +36,43 @@
 		<civilization id="30" name="burmese" soundFile="stream\burmese.mp3" scoutUnit="448" uniqueUnit="823" eliteUniqueUnit="811" uniqueUnitLine="823" uniqueUnitUpgrade="619" uniqueResearch="627" />
 		<civilization id="31" name="vietnamese" soundFile="stream\vietnamese.mp3" scoutUnit="448" uniqueUnit="784" eliteUniqueUnit="782" uniqueUnitLine="784" uniqueUnitUpgrade="621" uniqueResearch="629" />
 	</civilizations>
+   <random-maps>
+     <!-- The Forgotten -->
+     <map id="-1" name="acropolis" drsId="54240" string="10914" description="30146" />
+     <map id="-2" name="budapest" drsId="54241" string="10915" description="30158" />
+     <map id="-3" name="cenotes" drsId="54242" string="10916" description="30148" />
+     <map id="-4" name="city-of-lakes" drsId="54243" string="10917" description="30149" />
+     <map id="-5" name="golden-pit" drsId="54244" string="10918" description="30150" />
+     <map id="-6" name="hideout" drsId="54245" string="10919" description="30151" />
+     <map id="-7" name="hill-fort" drsId="54246" string="10920" description="30152" />
+     <map id="-8" name="lombardia" drsId="54247" string="10921" description="30153" />
+     <map id="-9" name="steppe" drsId="54248" string="10922" description="30154" />
+     <map id="-10" name="valley" drsId="54249" string="10923" description="30155" />
+     <map id="-11" name="megarandom" drsId="54250" string="10924" description="30156" />
+     <!-- African Kingdoms -->
+     <map id="-12" name="mountain-pass" drsId="54251" string="55001" description="55002" />
+     <map id="-13" name="nile-delta" drsId="54252" string="55003" description="55004" />
+     <map id="-14" name="serengeti" drsId="54253" string="55005" description="55006" />
+     <map id="-15" name="socotra" drsId="54254" string="55007" description="55008" />
+     <!-- AK Real World maps -->
+     <map id="-16" name="amazon" drsId="55020" scxDrsId="56020" string="55009" description="55010" />
+     <map id="-17" name="bohemia" drsId="55021" scxDrsId="56021" string="55011" description="55012" />
+     <map id="-18" name="china" drsId="55022" scxDrsId="56022" string="55013" description="55014" />
+     <map id="-19" name="horn-of-africa" drsId="55023" scxDrsId="56023" string="55015" description="55016" />
+     <map id="-20" name="india" drsId="55024" scxDrsId="56024" string="55017" description="55018" />
+     <map id="-21" name="madagascar" drsId="55025" scxDrsId="56025" string="55019" description="55020" />
+     <map id="-22" name="west-africa" drsId="55026" scxDrsId="56026" string="55021" description="55022" />
+     <map id="-23" name="earth" drsId="55027" scxDrsId="56027" string="55023" description="55024" />
+     <!-- Rise of the Rajas -->
+     <map id="-24" name="bog-islands" drsId="54255" string="55025" description="55026" />
+     <map id="-25" name="mangrove-jungle" drsId="54256" string="55027" description="55028" />
+     <map id="-26" name="pacific-islands" drsId="54257" string="55029" description="55030" />
+     <map id="-27" name="sandbank" drsId="54258" string="55031" description="55032" />
+     <map id="-28" name="water-nomad" drsId="54259" string="55033" description="55034" />
+     <!-- RoR Real World maps -->
+     <map id="-29" name="indochina" drsId="55028" scxDrsId="56028" string="55035" description="55036" />
+     <map id="-30" name="indonesia" drsId="55029" scxDrsId="56029" string="55037" description="55038" />
+     <map id="-31" name="philippines" drsId="55030" scxDrsId="56030" string="55039" description="55040" />
+     <map id="-32" name="strait-of-malacca" drsId="55031" scxDrsId="56031" string="55041" description="55042" />
+   </random-maps>
 </configuration>
