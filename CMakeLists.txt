@@ -35,7 +35,8 @@ if (WIN32)
 endif()
 
 if (WIN32)
-  add_definitions(/D:UNICODE)
+  add_definitions(-DUNICODE)
+  add_definitions(-D_UNICODE)
 endif()
 
 if(NOT MSVC)
