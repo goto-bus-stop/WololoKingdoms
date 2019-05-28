@@ -30,6 +30,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/genieutils/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/pcrio/include)
 if (WIN32)
+  add_definitions(-DICONV_SECOND_ARGUMENT_IS_CONST)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/genieutils/extern/win-iconv)
 endif()
 
