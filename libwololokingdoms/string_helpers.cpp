@@ -2,6 +2,7 @@
 #include <istream>
 #include <algorithm>
 #include <iconv.h>
+#include <cctype> // std::tolower
 #include "string_helpers.h"
 
 void replace_all(std::string& str, const std::string& from, const std::string& to) {
