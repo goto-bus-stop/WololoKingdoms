@@ -15,7 +15,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
-find_package(Qt5Widgets CONFIG REQUIRED)
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
 set(WK_STATIC_BUILD 1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/)
@@ -104,5 +106,6 @@ if (WORKING_STD_FS)
   target_link_libraries(${Wololokingdoms_INSTALLER} stdc++fs)
 endif()
 target_link_libraries(${Wololokingdoms_INSTALLER} steam_api)
+
 # Use the Widgets module from Qt 5
-target_link_libraries(${Wololokingdoms_INSTALLER} Qt5::Widgets)
+target_link_libraries(${Wololokingdoms_INSTALLER} Qt5::Core Qt5::Gui Qt5::Widgets)
