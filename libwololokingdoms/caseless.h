@@ -7,7 +7,7 @@
 /**
  * Windows is already case insensitive.
  */
-namespace cfs = std::filesystem;
+namespace cfs = fs;
 
 #else
 
