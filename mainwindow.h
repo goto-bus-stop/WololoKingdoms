@@ -1,15 +1,14 @@
 #pragma once
+#include "libwololokingdoms/wksettings.h"
+#include "libwololokingdoms/wkconverter.h"
+#include <fs.h>
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QMetaType>
-
 #include <set>
 #include <regex>
 #include <memory>
-#include <fs.h>
-#include "libwololokingdoms/wksettings.h"
-#include "libwololokingdoms/wkconverter.h"
 
 namespace Ui {
 class MainWindow;
