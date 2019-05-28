@@ -14,6 +14,7 @@
  */
 #include <windows.h>
 #include <shellapi.h>
+#include <sstream>
 
 static void runCmd(std::wstring exe) {
     SHELLEXECUTEINFO ShExecInfo = {0};
