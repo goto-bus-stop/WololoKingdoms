@@ -34,10 +34,14 @@ if (WIN32)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/genieutils/extern/win-iconv)
 endif()
 
+if (WIN32)
+  add_definitions(/D:UNICODE)
+endif()
+
 if(NOT MSVC)
-    add_definitions(-Wall -Wsign-compare -Wextra -Wpedantic)
+  add_definitions(-Wall -Wsign-compare -Wextra -Wpedantic)
 else()
-    add_definitions(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
+  add_definitions(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
 endif()
 
 set(ALL_SRC
