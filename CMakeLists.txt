@@ -87,7 +87,7 @@ endif()
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
 if (WIN32)
   # let it know where to find the .lib
-  link_directories(${CMAKE_CURRENT_BINARY_DIR}/third_party/steam_sdk/redistributable_bin/)
+  link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/steam_sdk/redistributable_bin/)
 endif()
 
 add_executable(${Wololokingdoms_INSTALLER} ${ALL_SRC})
