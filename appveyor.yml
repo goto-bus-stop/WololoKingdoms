@@ -16,6 +16,4 @@ build_script:
   - cmake -B build
   - cmake --build build
   # check that it runs fine
-  - dir build\Debug
-  - dir build\Win32
-  - .\build\Debug\WololoKingdoms.exe --help
+  - cd .\build & .\Debug\WololoKingdoms.exe --help
