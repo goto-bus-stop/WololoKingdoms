@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(WololoKingdoms)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/libwololokingdoms/cmake/)
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed
@@ -32,6 +34,28 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/pc
 if (WIN32)
   add_definitions(-DICONV_SECOND_ARGUMENT_IS_CONST)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/genieutils/extern/win-iconv)
+endif()
+
+# DUPLICATED FROM libwololokingdoms/CMakeLists!
+# check c++17 filesystem support
+# (mingw's windows header has a bug)
+include(CheckCXXSourceCompiles)
+set(CMAKE_REQUIRED_FLAGS "-std=c++17")
+set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
+check_cxx_source_compiles("
+#include <filesystem>
+int main() {
+    std::filesystem::path aPath {\"hello\"};
+    aPath /= \"world\";
+    return 0;
+}
+" WORKING_STD_FS)
+set(CMAKE_REQUIRED_FLAGS)
+set(CMAKE_REQUIRED_LIBRARIES)
+if (NOT WORKING_STD_FS)
+  message("builtin filesystem is bad, falling back to gulrak/filesystem")
+  include_directories(libwololokingdoms/third_party/filesystem/include/)
+  add_definitions(-DUSE_USERLAND_FS)
 endif()
 
 if (WIN32)
