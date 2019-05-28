@@ -9,8 +9,8 @@ platform:
   - x64
 
 install:
-  - call "C:\Program Files\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-  - set VC_VARSALL=amd64
+  - set VC_DIR="C:\Program Files\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat"
+  - set VC_VARSALL=x64
   - set PATH=%PATH%;%QTDIR%\bin
   - git submodule update --init --recursive
 build_script:
