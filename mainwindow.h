@@ -1,11 +1,11 @@
 #pragma once
-#include "libwololokingdoms/wksettings.h"
-#include "libwololokingdoms/wkconverter.h"
-#include <fs.h>
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QMetaType>
+#include "libwololokingdoms/wksettings.h"
+#include "libwololokingdoms/wkconverter.h"
+#include <fs.h>
 #include <set>
 #include <regex>
 #include <memory>
@@ -14,7 +14,7 @@ namespace Ui {
 class MainWindow;
 }
 
-Q_DECLARE_METATYPE(std::string);
+Q_DECLARE_METATYPE(std::string)
 
 class WKQConverter: public QObject, public WKConvertListener {
     Q_OBJECT
