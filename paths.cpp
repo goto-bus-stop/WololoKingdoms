@@ -89,7 +89,7 @@ fs::path getSteamPath() {
     RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Valve\\Steam", 0, KEY_READ, &hKey);
   RegQueryValueEx(hKey, L"InstallPath", NULL, NULL, reinterpret_cast<LPBYTE>(temp), &size);
   RegCloseKey(hKey);
-  fs::path steamPath(std::wstring(temp));
+  auto steamPath = std::wstring(temp);
   return steamPath;
 }
 
