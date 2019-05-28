@@ -15,5 +15,3 @@ build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" || exit /B 1
   - cmake -B build
   - cmake --build build
-  # check that it runs fine
-  - cd .\build & .\Debug\WololoKingdoms.exe --help
