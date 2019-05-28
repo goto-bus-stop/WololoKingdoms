@@ -69,8 +69,11 @@ fs::path getHDPath(fs::path steamPath) {
 fs::path getExePath() {
   wchar_t exePath[MAX_PATH];
   auto pathLength = GetModuleFileName(nullptr, exePath, MAX_PATH);
-  wchar_t* exePathPtr = exePath;
-  return pathLength > 0 ? fs::path(exePathPtr) : fs::path();
+  if (pathLength == 0) {
+    return fs::path();
+  }
+  auto str = std::wstring(exePath);
+  return fs::path(str);
 }
 
 fs::path getSteamPath() {
@@ -86,7 +89,7 @@ fs::path getSteamPath() {
     RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Valve\\Steam", 0, KEY_READ, &hKey);
   RegQueryValueEx(hKey, L"InstallPath", NULL, NULL, reinterpret_cast<LPBYTE>(temp), &size);
   RegCloseKey(hKey);
-  fs::path steamPath(wstrtostr(std::wstring(temp)));
+  fs::path steamPath(std::wstring(temp));
   return steamPath;
 }
 
