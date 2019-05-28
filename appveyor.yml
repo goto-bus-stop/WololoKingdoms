@@ -2,20 +2,20 @@ image: Visual Studio 2017
 
 environment:
   VS_VERSION: vs2017
-  QTDIR: C:\Qt\5.12\msvc2017_64
-  PLATFORM: msvc2017_64
+  QTDIR: C:\Qt\5.12\msvc2017
+  PLATFORM: msvc2017
 
 platform:
-  - x64
+  - x86
 
 install:
   - set VC_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat"
-  - set VC_VARSALL=x64
+  - set VC_VARSALL=x86
   - set PATH=%PATH%;%QTDIR%\bin
   - git submodule update --init --recursive
 build_script:
   - call %VC_DIR% %VC_VARSALL% || exit /B 1
-  - cmake -B build -DCMAKE_GENERATOR_PLATFORM=x64
+  - cmake -B build -DCMAKE_GENERATOR_PLATFORM=x86
   - cmake --build build
   # check that it runs fine
   - build/WololoKingdoms.exe --help
