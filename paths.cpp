@@ -67,9 +67,10 @@ fs::path getHDPath(fs::path steamPath) {
 
 #ifdef _WIN32
 fs::path getExePath() {
-  wchar_t pszPathToSelf[MAX_PATH];
-  DWORD dwPathLength = GetModuleFileName(nullptr, pszPathToSelf, MAX_PATH);
-  return dwPathLength > 0 ? fs::path(pszPathToSelf) : fs::path();
+  wchar_t exePath[MAX_PATH];
+  auto pathLength = GetModuleFileName(nullptr, exePath, MAX_PATH);
+  wchar_t* exePathPtr = exePath;
+  return pathLength > 0 ? fs::path(exePathPtr) : fs::path();
 }
 
 fs::path getSteamPath() {
