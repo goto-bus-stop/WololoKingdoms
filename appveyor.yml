@@ -16,7 +16,7 @@ install:
   - git submodule update --init --recursive
 build_script:
   - call %VC_DIR% %VC_VARSALL% || exit /B 1
-  - cmake -B build
+  - cmake -B build -G "MinGW Makefiles"
   - cmake --build build
   # check that it runs fine
   - build/WololoKingdoms.exe --help
