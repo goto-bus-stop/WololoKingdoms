@@ -85,6 +85,10 @@ if (UNIX)
 endif()
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
+if (WIN32)
+  # let it know where to find the .lib
+  link_directories(${CMAKE_CURRENT_BINARY_DIR}/third_party/steam_sdk/redistributable_bin/)
+endif()
 
 add_executable(${Wololokingdoms_INSTALLER} ${ALL_SRC})
 if (MSVC) # Check if we are using the Visual Studio compiler
@@ -99,10 +103,6 @@ target_link_libraries(${Wololokingdoms_INSTALLER} genieutils)
 if (WORKING_STD_FS)
   target_link_libraries(${Wololokingdoms_INSTALLER} stdc++fs)
 endif()
-if (WIN32)
-  target_link_libraries(${Wololokingdoms_INSTALLER} steam_api)
-else()
-  target_link_libraries(${Wololokingdoms_INSTALLER} steam_api)
-endif()
+target_link_libraries(${Wololokingdoms_INSTALLER} steam_api)
 # Use the Widgets module from Qt 5
 target_link_libraries(${Wololokingdoms_INSTALLER} Qt5::Widgets)
