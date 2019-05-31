@@ -24,11 +24,7 @@ check_ipo_supported(RESULT ENABLE_LTO OUTPUT error)
 set(WK_STATIC_BUILD 1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/)
 
-if (MSVC)
-  if (CMAKE_BUILD_TYPE EQUAL "Release")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MT")
-  endif()
-else()
+if (NOT MSVC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
 endif()
 
@@ -130,3 +126,10 @@ target_link_libraries(${Wololokingdoms_INSTALLER} Qt5::Widgets)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
   ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources)
+
+if(WIN32)
+  # Run windeployqt if it can be found
+  find_program(WINDEPLOYQT NAMES windeployqt HINTS ${QTDIR} ENV QTDIR PATH_SUFFIXES bin)
+  add_custom_command(TARGET ${Wololokingdoms_INSTALLER} POST_BUILD
+    COMMAND ${WINDEPLOYQT_EXECUTABLE} $<TARGET_FILE:${Wololokingdoms_INSTALLER}>)
+endif()
