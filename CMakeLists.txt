@@ -37,6 +37,7 @@ endif()
 add_custom_target(build-time-make-directory ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
+# Set up Steam API
 if (${CMAKE_SIZEOF_VOID_P} EQUAL "8")
   if (WIN32)
     set(Steam_API_NAME steam_api64)
@@ -58,10 +59,10 @@ else()
     set(Steam_API_DIR linux32/)
   endif()
 endif()
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/steam_appid.txt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/steam_appid.txt COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/steam_sdk/redistributable_bin/${Steam_API_DIR}${Steam_API_SO} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${Steam_API_SO} COPYONLY)
 
+# Configure includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/genieutils/include)
@@ -76,8 +77,25 @@ endif()
 include(HasWorkingFilesystem)
 if (NOT WORKING_STD_FS)
   message(WARNING "builtin filesystem is bad, falling back to gulrak/filesystem")
-  include_directories(libwololokingdoms/third_party/filesystem/include/)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libwololokingdoms/third_party/filesystem/include/)
   add_definitions(-DUSE_USERLAND_FS)
+endif()
+
+# Find genie-scx for scenario conversion
+if (WIN32)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/include)
+  # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
+  add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs/cgenie_scx.dll)
+else()
+  set(GENIE_RS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../genie-rs)
+  add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libcgenie_scx.so
+                     WORKING_DIRECTORY ${GENIE_RS_DIR}
+                     COMMAND cargo build -p cgenie-scx --release
+                     COMMAND cp target/release/libcgenie_scx.so ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  add_custom_target(cgenie-scx DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libcgenie_scx.so)
+  include_directories(${GENIE_RS_DIR}/c/include)
 endif()
 
 if (WIN32)
@@ -88,9 +106,9 @@ if (WIN32)
 endif()
 
 if(NOT MSVC)
-  add_definitions(-Wall -Wsign-compare -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wsign-compare -Wextra -Wpedantic)
 else()
-  add_definitions(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
+  add_compile_options(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
 endif()
 
 set(ALL_SRC
@@ -125,11 +143,15 @@ if(ENABLE_LTO)
   set_property(TARGET ${Wololokingdoms_INSTALLER} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
+add_dependencies(${Wololokingdoms_INSTALLER} cgenie-scx)
+
 target_link_libraries(${Wololokingdoms_INSTALLER} wololokingdoms)
 target_link_libraries(${Wololokingdoms_INSTALLER} genieutils)
+target_link_libraries(${Wololokingdoms_INSTALLER} cgenie_scx)
 if (WORKING_STD_FS)
   target_link_libraries(${Wololokingdoms_INSTALLER} stdc++fs)
 endif()
+# target_link_libraries(${Wololokingdoms_INSTALLER} cgenie_scx)
 target_link_libraries(${Wololokingdoms_INSTALLER} ${Steam_API_NAME})
 
 # Use the Widgets module from Qt 5
@@ -137,4 +159,5 @@ target_link_libraries(${Wololokingdoms_INSTALLER} Qt5::Widgets)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources)
+  ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/resources
+)

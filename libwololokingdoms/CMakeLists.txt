@@ -32,18 +32,18 @@ include_directories(include/)
 include_directories(third_party/genieutils/include/)
 include_directories(third_party/miniz)
 if (WIN32)
-  add_definitions(-DICONV_SECOND_ARGUMENT_IS_CONST)
+  add_compile_definitions(ICONV_SECOND_ARGUMENT_IS_CONST)
   include_directories(third_party/genieutils/extern/win-iconv)
 endif()
 
 if (${ICONV_FOUND})
-    include(${ICONV_INCLUDE_DIR})
+  include(${ICONV_INCLUDE_DIR})
 endif (${ICONV_FOUND})
 
 if(NOT MSVC)
-    add_definitions(-Wall -Wsign-compare -Wextra -Wpedantic)
+  add_definitions(-Wall -Wsign-compare -Wextra -Wpedantic)
 else()
-    add_definitions(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
+  add_definitions(/wd4244 /wd4018 /wd4267 /wd4996 /wd4800)
 endif()
 
 # check c++17 filesystem support
@@ -54,12 +54,12 @@ set(CMAKE_REQUIRED_LIBRARIES)
 if (NOT WORKING_STD_FS)
   message(WARNING "builtin filesystem is bad, falling back to gulrak/filesystem")
     include_directories(third_party/filesystem/include/)
-    add_definitions(-DUSE_USERLAND_FS)
+    add_compile_definitions(USE_USERLAND_FS)
 endif()
 
 if (WIN32)
-  add_definitions(-DUNICODE)
-  add_definitions(-D_UNICODE)
+  add_compile_definitions(UNICODE)
+  add_compile_definitions(_UNICODE)
 endif()
 
 #------------------------------------------------------------------------------#
@@ -110,21 +110,21 @@ set(ALL_SRC
 #------------------------------------------------------------------------------#
 
 if (WK_STATIC_BUILD)
-      message(STATUS "Building libwololokingdoms as static library")
-      add_library(${Wololokingdoms_LIBRARY} STATIC ${ALL_SRC})
+  message(STATUS "Building libwololokingdoms as static library")
+  add_library(${Wololokingdoms_LIBRARY} STATIC ${ALL_SRC})
 else()
-    add_library(${Wololokingdoms_LIBRARY} SHARED ${ALL_SRC})
-    target_link_libraries(${Wololokingdoms_LIBRARY} genieutils)
+  add_library(${Wololokingdoms_LIBRARY} SHARED ${ALL_SRC})
+  target_link_libraries(${Wololokingdoms_LIBRARY} genieutils)
 
-    install(TARGETS ${Wololokingdoms_LIBRARY}
-        LIBRARY DESTINATION lib
-    )
+  install(TARGETS ${Wololokingdoms_LIBRARY}
+    LIBRARY DESTINATION lib
+  )
 
-    install(
-        DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-        DESTINATION include
-        FILES_MATCHING PATTERN "*.h*"
-    )
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h*"
+  )
 endif()
 
 if(ENABLE_LTO)
