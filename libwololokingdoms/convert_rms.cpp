@@ -167,26 +167,9 @@ using UsedTerrainsMap = std::array<bool, 100>;
  */
 using ZipRMSFiles = std::map<std::string, std::vector<char>>;
 
-void create_zip_rms(ZipRMSFiles& map_files, fs::path output_dir,
-                    std::string map_name) {
-  fs::path outname = output_dir / ("ZR@" + map_name);
-  std::ofstream outstream(outname, std::ios_base::out | std::ios_base::binary);
-  outstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-  ZRMapCreator zr_map(outstream);
-  for (auto& [name, data] : map_files) {
-    vecbuf buf(data);
-    std::istream stream(&buf);
-    zr_map.addFile(name, stream);
-  }
-  zr_map.end();
-  outstream.close();
-  cfs::remove(output_dir / map_name);
-}
-
-bool is_terrain_used(
-    TerrainType terrain, UsedTerrainsMap& used_terrains,
-    const std::string& source_code,
-    const std::map<TerrainType, std::regex>& patterns) {
+static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
+                            const std::string& source_code,
+                            const std::map<TerrainType, std::regex>& patterns) {
   static const auto rxForest =
       std::regex("\\W(PINE_FOREST|LEAVES|JUNGLE|BAMBOO|FOREST)\\W");
   static const auto rxDesert = std::regex("\\W(PALM_DESERT|DESERT)\\W");
@@ -212,8 +195,8 @@ bool is_terrain_used(
   }
 }
 
-bool uses_multiple_water_terrains(const std::string& source_code,
-                                  UsedTerrainsMap& used_terrains) {
+static bool uses_multiple_water_terrains(const std::string& source_code,
+                                         UsedTerrainsMap& used_terrains) {
   static const auto rxDlcWater4 = std::regex("\\WDLC_WATER4\\W");
   static const auto rxDlcWater5 = std::regex("\\WDLC_WATER5\\W");
   static const auto rxWater = std::regex("\\WWATER\\W");
@@ -231,8 +214,8 @@ bool uses_multiple_water_terrains(const std::string& source_code,
   return used_terrains[TerrainType::WaterNormal];
 }
 
-void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
-                   std::string& map) {
+static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
+                          std::string& map) {
   static const auto rxPlayerSetup = std::regex("<PLAYER_SETUP>\\s*(\\r*)\\n");
   static const auto rxIncludeDrs =
       std::regex("#include_drs\\s+random_map\\.def\\s*(\\r*)\\n");
@@ -281,7 +264,7 @@ void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
  * consumer is responsible for checking if an scx file should be added. This can
  * be added to the returned map of files after the fact.
  */
-ZipRMSFiles
+static ZipRMSFiles
 convert_map(std::string& map, const std::string& map_name,
             const std::map<std::string, fs::path>& terrain_graphics) {
   static const std::array<std::map<TerrainType, std::regex>, 6> terrain_groups =
@@ -624,11 +607,23 @@ void convert_maps(const fs::path& input_dir, const fs::path& output_dir,
       auto scx_name = it.stem().string() + ".scx";
       map_files[scx_name] = read_file(input_dir / scx_name);
     }
+
     if (map_files.size() != 1) {
-      create_zip_rms(map_files, output_dir, map_name);
+      std::ofstream outstream(output_dir / ("ZR@" + map_name),
+                              std::ios_base::out | std::ios_base::binary);
+      outstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+      ZRMapCreator zr_map(outstream);
+      for (auto& [name, data] : map_files) {
+        vecbuf buf(data);
+        std::istream stream(&buf);
+        zr_map.addFile(name, stream);
+      }
+      zr_map.end();
     } else {
-      std::ofstream out(output_dir / map_name);
-      out.write(map_files[map_name].data(), map_files[map_name].size());
+      std::ofstream outstream(output_dir / map_name,
+                              std::ios_base::out | std::ios_base::binary);
+      outstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+      outstream.write(map_files[map_name].data(), map_files[map_name].size());
     }
   }
 }
