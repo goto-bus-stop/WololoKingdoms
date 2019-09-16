@@ -134,7 +134,7 @@ struct MapConvertData {
   std::string replaced_name;
   TerrainType old_terrain_id;
   TerrainType new_terrain_id;
-  TerrainGroup terrain_type;
+  TerrainGroup terrain_group;
 };
 
 std::vector<char> read_file(const fs::path& filename) {
@@ -167,6 +167,9 @@ using UsedTerrainsMap = std::array<bool, 100>;
  */
 using ZipRMSFiles = std::map<std::string, std::vector<char>>;
 
+/**
+ * Check if a certain terrain is used by a map script and mark it as used if so.
+ */
 static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
                             const std::string& source_code,
                             const std::map<TerrainType, std::regex>& patterns) {
@@ -195,6 +198,9 @@ static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
   }
 }
 
+/**
+ * Check if a random map script uses multiple water terrains, and mark the WaterNormal terrain as used if so.
+ */
 static bool uses_multiple_water_terrains(const std::string& source_code,
                                          UsedTerrainsMap& used_terrains) {
   static const auto rxDlcWater4 = std::regex("\\WDLC_WATER4\\W");
@@ -214,6 +220,9 @@ static bool uses_multiple_water_terrains(const std::string& source_code,
   return used_terrains[TerrainType::WaterNormal];
 }
 
+/**
+ * Add some code to the map to change the trees on a certain terrain from AoC trees to DLC trees using UserPatch effects.
+ */
 static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
                           std::string& map) {
   static const auto rxPlayerSetup = std::regex("<PLAYER_SETUP>\\s*(\\r*)\\n");
@@ -290,7 +299,7 @@ convert_map(std::string& map, const std::string& map_name,
 
   static const std::vector<MapConvertData> terrain_replacements = {
       // slp_name, const_name_pattern, replaced_name_pattern, old_terrain_id,
-      // new_terrain_id, terrain_type
+      // new_terrain_id, terrain_group
       {"DRAGONFOREST.slp",
        {"DRAGONFORES", "DRAGONFOREST"},
        "DRAGONFOREST",
@@ -476,15 +485,15 @@ convert_map(std::string& map, const std::string& map_name,
     TerrainType usedTerrain = replacement.new_terrain_id;
     // If it's one of the terrains with a shared slp, we need to search the
     // map for these other terrains too, else just the usedTerrain
-    if (replacement.terrain_type > FixedTerrain &&
+    if (replacement.terrain_group > FixedTerrain &&
         is_terrain_used(usedTerrain, used_terrains, map,
-                        terrain_groups[replacement.terrain_type])) {
+                        terrain_groups[replacement.terrain_group])) {
       bool success = false;
-      for (auto& [id, rx] : terrain_groups[replacement.terrain_type]) {
+      for (auto& [id, rx] : terrain_groups[replacement.terrain_group]) {
         if (used_terrains.at(id))
           continue;
         else if (is_terrain_used(id, used_terrains, map,
-                                 terrain_groups[replacement.terrain_type])) {
+                                 terrain_groups[replacement.terrain_group])) {
           continue;
         }
         success = true;
@@ -492,9 +501,9 @@ convert_map(std::string& map, const std::string& map_name,
         used_terrains.at(id) = true;
         break;
       }
-      if (!success && replacement.terrain_type == LandTerrain &&
+      if (!success && replacement.terrain_group == LandTerrain &&
           !is_terrain_used(TerrainType::Leaves, used_terrains, map,
-                           terrain_groups[replacement.terrain_type])) {
+                           terrain_groups[replacement.terrain_group])) {
         usedTerrain = TerrainType::Leaves; // Leaves is a last effort, usually
                                            // likely to be used already
         used_terrains[TerrainType::Leaves] = true;
@@ -536,15 +545,15 @@ convert_map(std::string& map, const std::string& map_name,
                                    std::to_string(usedTerrain));
     }
 
-    if (replacement.terrain_type == None ||
-        (replacement.terrain_type == WaterTerrain &&
+    if (replacement.terrain_group == None ||
+        (replacement.terrain_group == WaterTerrain &&
          uses_multiple_water_terrains(map, used_terrains)))
       continue;
 
     map_files[terrain_file_names.at(usedTerrain)] =
         read_file(terrain_graphics.at(replacement.slp_name));
 
-    if (replacement.terrain_type == ForestTerrain) {
+    if (replacement.terrain_group == ForestTerrain) {
       upgrade_trees(usedTerrain, replacement.old_terrain_id, map);
     }
   }
