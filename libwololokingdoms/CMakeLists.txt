@@ -67,6 +67,7 @@ endif()
 #------------------------------------------------------------------------------#
 set(ALL_SRC
     libwololokingdoms.cpp
+    convert_rms.cpp
     fs.cpp
     base64.cpp
     md5.cpp
