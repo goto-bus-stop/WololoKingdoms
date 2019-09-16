@@ -174,8 +174,8 @@ static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
                             const std::string& source_code,
                             const std::map<TerrainType, std::regex>& patterns) {
   static const auto rxForest =
-      std::regex("\\W(PINE_FOREST|LEAVES|JUNGLE|BAMBOO|FOREST)\\W");
-  static const auto rxDesert = std::regex("\\W(PALM_DESERT|DESERT)\\W");
+      std::regex(R"(\W(PINE_FOREST|LEAVES|JUNGLE|BAMBOO|FOREST)\W)");
+  static const auto rxDesert = std::regex(R"(\W(PALM_DESERT|DESERT)\W)");
 
   if (terrain == TerrainType::Leaves || terrain == TerrainType::Forest) {
     if (!used_terrains[TerrainType::DLC3RiceFarm1]) {
@@ -199,15 +199,16 @@ static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
 }
 
 /**
- * Check if a random map script uses multiple water terrains, and mark the WaterNormal terrain as used if so.
+ * Check if a random map script uses multiple water terrains, and mark the
+ * WaterNormal terrain as used if so.
  */
 static bool uses_multiple_water_terrains(const std::string& source_code,
                                          UsedTerrainsMap& used_terrains) {
-  static const auto rxDlcWater4 = std::regex("\\WDLC_WATER4\\W");
-  static const auto rxDlcWater5 = std::regex("\\WDLC_WATER5\\W");
-  static const auto rxWater = std::regex("\\WWATER\\W");
-  static const auto rxMedWater = std::regex("\\WMED_WATER\\W");
-  static const auto rxDeepWater = std::regex("\\WDEEP_WATER\\W");
+  static const auto rxDlcWater4 = std::regex(R"(\WDLC_WATER4\W)");
+  static const auto rxDlcWater5 = std::regex(R"(\WDLC_WATER5\W)");
+  static const auto rxWater = std::regex(R"(\WWATER\W)");
+  static const auto rxMedWater = std::regex(R"(\WMED_WATER\W)");
+  static const auto rxDeepWater = std::regex(R"(\WDEEP_WATER\W)");
 
   if (!used_terrains[TerrainType::WaterNormal]) {
     used_terrains[TerrainType::WaterNormal] =
@@ -221,13 +222,14 @@ static bool uses_multiple_water_terrains(const std::string& source_code,
 }
 
 /**
- * Add some code to the map to change the trees on a certain terrain from AoC trees to DLC trees using UserPatch effects.
+ * Add some code to the map to change the trees on a certain terrain from AoC
+ * trees to DLC trees using UserPatch effects.
  */
 static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
                           std::string& map) {
-  static const auto rxPlayerSetup = std::regex("<PLAYER_SETUP>\\s*(\\r*)\\n");
+  static const auto rxPlayerSetup = std::regex(R"(<PLAYER_SETUP>\s*(\r*)\n)");
   static const auto rxIncludeDrs =
-      std::regex("#include_drs\\s+random_map\\.def\\s*(\\r*)\\n");
+      std::regex(R"(#include_drs\s+random_map\.def\s*(\r*)\n)");
 
   std::string new_tree_name;
   std::string old_tree_name;
@@ -279,23 +281,23 @@ convert_map(std::string& map, const std::string& map_name,
   static const std::array<std::map<TerrainType, std::regex>, 6> terrain_groups =
       {{// The Order is important, see the TerrainGroup Enum!
         {},
-        {{TerrainType::WaterNormal, std::regex("\\WMED_WATER\\W")},
-         {TerrainType::WaterDeep, std::regex("\\WDEEP_WATER\\W")}},
+        {{TerrainType::WaterNormal, std::regex(R"(\WMED_WATER\W)")},
+         {TerrainType::WaterDeep, std::regex(R"(\WDEEP_WATER\W)")}},
         {},
-        {{TerrainType::Grass, std::regex("\\WGRASS\\W")},
-         {TerrainType::Desert3, std::regex("\\WDIRT3\\W")},
-         {TerrainType::Desert, std::regex("\\WDIRT1\\W")},
-         {TerrainType::Grass3, std::regex("\\WGRASS3\\W")},
-         {TerrainType::Grass2, std::regex("\\WGRASS2\\W")},
-         {TerrainType::Sand, std::regex("\\WDESERT\\W")},
-         {TerrainType::Road, std::regex("\\WROAD\\W")},
-         {TerrainType::Road2, std::regex("\\WROAD2\\W")},
-         {TerrainType::FungusRoad, std::regex("\\WROAD3\\W")}},
-        {{TerrainType::Forest, std::regex("\\WFOREST\\W")},
-         {TerrainType::PalmDesert, std::regex("\\WPALM_DESERT\\W")},
-         {TerrainType::SnowForest, std::regex("\\WSNOW_FOREST\\W")}},
-        {{TerrainType::UnbuildableRock, std::regex("\\WDLC_ROCK\\W")},
-         {TerrainType::Ice2, std::regex("\\WICE\\W")}}}};
+        {{TerrainType::Grass, std::regex(R"(\WGRASS\W)")},
+         {TerrainType::Desert3, std::regex(R"(\WDIRT3\W)")},
+         {TerrainType::Desert, std::regex(R"(\WDIRT1\W)")},
+         {TerrainType::Grass3, std::regex(R"(\WGRASS3\W)")},
+         {TerrainType::Grass2, std::regex(R"(\WGRASS2\W)")},
+         {TerrainType::Sand, std::regex(R"(\WDESERT\W)")},
+         {TerrainType::Road, std::regex(R"(\WROAD\W)")},
+         {TerrainType::Road2, std::regex(R"(\WROAD2\W)")},
+         {TerrainType::FungusRoad, std::regex(R"(\WROAD3\W)")}},
+        {{TerrainType::Forest, std::regex(R"(\WFOREST\W)")},
+         {TerrainType::PalmDesert, std::regex(R"(\WPALM_DESERT\W)")},
+         {TerrainType::SnowForest, std::regex(R"(\WSNOW_FOREST\W)")}},
+        {{TerrainType::UnbuildableRock, std::regex(R"(\WDLC_ROCK\W)")},
+         {TerrainType::Ice2, std::regex(R"(\WICE\W)")}}}};
 
   static const std::vector<MapConvertData> terrain_replacements = {
       // slp_name, const_name_pattern, replaced_name_pattern, old_terrain_id,
@@ -524,7 +526,7 @@ convert_map(std::string& map, const std::string& map_name,
       map = std::regex_replace(map, std::regex(terrain_const_name),
                                "MY" + replacement.replaced_name);
       auto terrainConstDef =
-          std::regex("#const\\sMY+" + terrain_const_name + "\\s+" +
+          std::regex(R"(#const\sMY+)" + terrain_const_name + R"(\s+)" +
                      std::to_string(replacement.old_terrain_id));
       std::string temp =
           std::regex_replace(map, terrainConstDef,
@@ -538,7 +540,7 @@ convert_map(std::string& map, const std::string& map_name,
       }
     } else {
       auto terrainConstDef =
-          std::regex("#const\\s+" + terrain_const_name + "\\s+" +
+          std::regex(R"(#const\sMY+)" + terrain_const_name + R"(\s+)" +
                      std::to_string(replacement.old_terrain_id));
       map = std::regex_replace(map, terrainConstDef,
                                "#const " + replacement.replaced_name + " " +
