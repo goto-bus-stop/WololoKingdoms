@@ -1,5 +1,6 @@
 #include "caseless.h"
 #include "zr_map_creator.h"
+#include "string_helpers.h"
 #include <array>
 #include <fs.h>
 #include <map>
