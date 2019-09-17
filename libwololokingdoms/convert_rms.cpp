@@ -576,46 +576,46 @@ void convert_maps(const fs::path& input_dir, const fs::path& output_dir,
                   bool replace) {
   // Find all maps to be converted
   std::vector<fs::path> map_names;
-  for (const auto& it : fs::directory_iterator(resolve_path(input_dir))) {
-    auto extension = it.path().extension();
+  for (const auto& entry : fs::directory_iterator(resolve_path(input_dir))) {
+    auto extension = entry.path().extension();
     if (extension == ".rms") {
-      map_names.push_back(it.path());
+      map_names.push_back(entry.path());
     }
   }
 
   // Main Loop, Iterate through the maps to be converted
-  for (auto& it : map_names) {
+  for (auto& map_path : map_names) {
     /*
-     * If the Map is already a ZR@ map, just copy it
+     * If the Map is already a ZR@ map, just copy filename
      * If not, check if a ZR@ map with that name exists in the target directory
-     * and remove it to be replaced by the newly converted map, if the replace
+     * and remove filename to be replaced by the newly converted map, if the replace
      * option is set to true. Else skip that map.
      */
-    auto map_name = it.stem().string() + ".rms";
+    auto map_name = map_path.stem().string() + ".rms";
     auto map_prefix = map_name.substr(0, 3);
     if (map_prefix == "ZR@") {
-      cfs::copy_file(it, output_dir / map_name,
+      cfs::copy_file(map_path, output_dir / map_name,
                      fs::copy_options::update_existing);
       continue;
     } else if (map_prefix == "es_") {
       continue; // These maps are already added to Voobly with the es@ prefix,
                 // no need to have this twice
     }
-    if (cfs::exists(output_dir / it.filename()) ||
-        cfs::exists(output_dir / ("ZR@" + it.filename().string()))) {
+    if (cfs::exists(output_dir / map_path.filename()) ||
+        cfs::exists(output_dir / ("ZR@" + map_path.filename().string()))) {
       if (replace)
-        cfs::remove(output_dir / it.filename());
+        cfs::remove(output_dir / map_path.filename());
       else
         continue;
     }
-    cfs::remove(output_dir / ("ZR@" + it.filename().string()));
-    std::ifstream input(resolve_path(input_dir / it.filename()));
+    cfs::remove(output_dir / ("ZR@" + map_path.filename().string()));
+    std::ifstream input(resolve_path(input_dir / map_path.filename()));
     std::string map = concat_stream(input);
     input.close();
 
     auto map_files = convert_map(map, map_name, terrain_graphics);
     if (map_name.substr(0, 3) == "rw_" || map_name.substr(0, 3) == "sm_") {
-      auto scx_name = it.stem().string() + ".scx";
+      auto scx_name = map_path.stem().string() + ".scx";
       map_files[scx_name] = read_file(input_dir / scx_name);
     }
 
