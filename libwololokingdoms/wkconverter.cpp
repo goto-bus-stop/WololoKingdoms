@@ -2105,8 +2105,8 @@ int WKConverter::run() {
     }
 
     for (auto& civ : aocDat.Civs) {
-      civ.Resources[198] = std::stoi(
-          dataVersion); // Mod version: WK=1, last 3 digits are patch number
+      // Mod version: WK=1, last 3 digits are patch number
+      civ.Resources[198] = std::stoi(dataVersion);
     }
 
     listener->log("Save DAT");
@@ -2138,8 +2138,8 @@ int WKConverter::run() {
       symlinkSetup(settings.vooblyDir, settings.upDir);
     }
 
-  } else { // If we use a balance mod or old patch, just copy the supplied dat
-           // fil
+  } else {
+    // If we use a balance mod or old patch, just copy the supplied dat file
     listener->log("Copy DAT file");
     cfs::remove(outputDatPath);
     genie::DatFile dat;
