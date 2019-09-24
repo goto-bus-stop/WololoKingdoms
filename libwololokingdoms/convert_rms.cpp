@@ -8,8 +8,7 @@
 #include <string>
 #include <vector>
 
-// this copy is unfortunate but cfs::resolve returns a temporary :/
-static const fs::path resolve_path(const fs::path& input) {
+static fs::path resolve_path(const fs::path& input) {
 #ifdef _WIN32
   return input;
 #else
