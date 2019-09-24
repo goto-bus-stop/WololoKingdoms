@@ -168,16 +168,16 @@ using UsedTerrainsMap = std::array<bool, 100>;
  */
 using ZipRMSFiles = std::map<std::string, std::vector<char>>;
 
+static const auto rxForest =
+    std::regex(R"(\W(PINE_FOREST|LEAVES|JUNGLE|BAMBOO|FOREST)\W)");
+static const auto rxDesert = std::regex(R"(\W(PALM_DESERT|DESERT)\W)");
+
 /**
  * Check if a certain terrain is used by a map script and mark it as used if so.
  */
 static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
                             const std::string& source_code,
                             const std::map<TerrainType, std::regex>& patterns) {
-  static const auto rxForest =
-      std::regex(R"(\W(PINE_FOREST|LEAVES|JUNGLE|BAMBOO|FOREST)\W)");
-  static const auto rxDesert = std::regex(R"(\W(PALM_DESERT|DESERT)\W)");
-
   if (terrain == TerrainType::Leaves || terrain == TerrainType::Forest) {
     if (!used_terrains[TerrainType::DLC3RiceFarm1]) {
       used_terrains[TerrainType::DLC3RiceFarm1] = true;
@@ -199,18 +199,18 @@ static bool is_terrain_used(TerrainType terrain, UsedTerrainsMap& used_terrains,
   }
 }
 
+static const auto rxDlcWater4 = std::regex(R"(\WDLC_WATER4\W)");
+static const auto rxDlcWater5 = std::regex(R"(\WDLC_WATER5\W)");
+static const auto rxWater = std::regex(R"(\WWATER\W)");
+static const auto rxMedWater = std::regex(R"(\WMED_WATER\W)");
+static const auto rxDeepWater = std::regex(R"(\WDEEP_WATER\W)");
+
 /**
  * Check if a random map script uses multiple water terrains, and mark the
  * WaterNormal terrain as used if so.
  */
 static bool uses_multiple_water_terrains(const std::string& source_code,
                                          UsedTerrainsMap& used_terrains) {
-  static const auto rxDlcWater4 = std::regex(R"(\WDLC_WATER4\W)");
-  static const auto rxDlcWater5 = std::regex(R"(\WDLC_WATER5\W)");
-  static const auto rxWater = std::regex(R"(\WWATER\W)");
-  static const auto rxMedWater = std::regex(R"(\WMED_WATER\W)");
-  static const auto rxDeepWater = std::regex(R"(\WDEEP_WATER\W)");
-
   if (!used_terrains[TerrainType::WaterNormal]) {
     used_terrains[TerrainType::WaterNormal] =
         std::regex_search(source_code, rxDlcWater4) ||
@@ -222,16 +222,16 @@ static bool uses_multiple_water_terrains(const std::string& source_code,
   return used_terrains[TerrainType::WaterNormal];
 }
 
+static const auto rxPlayerSetup = std::regex(R"(<PLAYER_SETUP>\s*(\r*)\n)");
+static const auto rxIncludeDrs =
+    std::regex(R"(#include_drs\s+random_map\.def\s*(\r*)\n)");
+
 /**
  * Add some code to the map to change the trees on a certain terrain from AoC
  * trees to DLC trees using UserPatch effects.
  */
 static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
                           std::string& map) {
-  static const auto rxPlayerSetup = std::regex(R"(<PLAYER_SETUP>\s*(\r*)\n)");
-  static const auto rxIncludeDrs =
-      std::regex(R"(#include_drs\s+random_map\.def\s*(\r*)\n)");
-
   std::string new_tree_name;
   std::string old_tree_name;
   switch (usedTerrain) {
@@ -266,6 +266,185 @@ static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
                                old_tree_name + " " + new_tree_name + " 0$1\n");
 }
 
+static const std::array<std::map<TerrainType, std::regex>, 6> terrain_groups =
+    {{// The Order is important, see the TerrainGroup Enum!
+      {},
+      {{TerrainType::WaterNormal, std::regex(R"(\WMED_WATER\W)")},
+       {TerrainType::WaterDeep, std::regex(R"(\WDEEP_WATER\W)")}},
+      {},
+      {{TerrainType::Grass, std::regex(R"(\WGRASS\W)")},
+       {TerrainType::Desert3, std::regex(R"(\WDIRT3\W)")},
+       {TerrainType::Desert, std::regex(R"(\WDIRT1\W)")},
+       {TerrainType::Grass3, std::regex(R"(\WGRASS3\W)")},
+       {TerrainType::Grass2, std::regex(R"(\WGRASS2\W)")},
+       {TerrainType::Sand, std::regex(R"(\WDESERT\W)")},
+       {TerrainType::Road, std::regex(R"(\WROAD\W)")},
+       {TerrainType::Road2, std::regex(R"(\WROAD2\W)")},
+       {TerrainType::FungusRoad, std::regex(R"(\WROAD3\W)")}},
+      {{TerrainType::Forest, std::regex(R"(\WFOREST\W)")},
+       {TerrainType::PalmDesert, std::regex(R"(\WPALM_DESERT\W)")},
+       {TerrainType::SnowForest, std::regex(R"(\WSNOW_FOREST\W)")}},
+      {{TerrainType::UnbuildableRock, std::regex(R"(\WDLC_ROCK\W)")},
+       {TerrainType::Ice2, std::regex(R"(\WICE\W)")}}}};
+
+static const std::vector<MapConvertData> terrain_replacements = {
+    // slp_name, const_name_pattern, replaced_name_pattern, old_terrain_id,
+    // new_terrain_id, terrain_group
+    {"DRAGONFOREST.slp",
+     {"DRAGONFORES", "DRAGONFOREST"},
+     "DRAGONFOREST",
+     TerrainType::DLC2DragonTreeForest,
+     TerrainType::SnowForest,
+     ForestTerrain},
+    {"ACACIA_FOREST.slp",
+     {"ACCACIA_FOREST", "ACACIA_FOREST", "ACACIAFORES"},
+     "ACACIA_FOREST",
+     TerrainType::DLC2AcaciaForest,
+     TerrainType::DLC2Savannah,
+     None},
+    {"DLC_RAINFOREST.slp",
+     {"DLC_RAINFOREST"},
+     "DLC_RAINFOREST",
+     TerrainType::DLC3Rainforest,
+     TerrainType::Forest,
+     ForestTerrain},
+    {"BAOBAB.slp",
+     {"BAOBABS", "BAOBAB_FOREST"},
+     "BAOBAB_FOREST",
+     TerrainType::DLC2BaobabForest,
+     TerrainType::ImpassableCliffGrass,
+     None},
+    {"DLC_MANGROVESHALLOW.slp",
+     {"DLC_MANGROVESHALLOW"},
+     "DLC_MANGROVESHALLOW",
+     TerrainType::DLC3WalkableShallowsMangrove,
+     TerrainType::Desert2,
+     None},
+    {"DLC_MANGROVEFOREST.slp",
+     {"DLC_MANGROVEFOREST"},
+     "DLC_MANGROVEFOREST",
+     TerrainType::DLC3MangroveForest,
+     TerrainType::OakForest,
+     None},
+    {"DLC_NEWSHALLOW.slp",
+     {"DLC_NEWSHALLOW"},
+     "DLC_NEWSHALLOW",
+     TerrainType::DLC3WalkableShallowsAzure,
+     TerrainType::WalkableShallows,
+     FixedTerrain},
+    {"SAVANNAH.slp",
+     {"SAVANNAH", "DLC_SAVANNAH"},
+     "SAVANNAH",
+     TerrainType::DLC2Savannah,
+     TerrainType::Sand,
+     LandTerrain},
+    {"DIRT4.slp",
+     {"DIRT4", "DLC_DIRT4"},
+     "DIRT4",
+     TerrainType::DLC2Dirt4,
+     TerrainType::Desert3,
+     LandTerrain},
+    {"MOORLAND.slp",
+     {"DLC_MOORLAND", "MOORLAND"},
+     "DLC_MOORLAND",
+     TerrainType::DLC2Moorland,
+     TerrainType::Grass3,
+     LandTerrain},
+    {"CRACKEDIT.slp",
+     {"CRACKEDIT"},
+     "CRACKEDIT",
+     TerrainType::DLC2CrackedDesert,
+     TerrainType::SnowRoad,
+     None},
+    {"QUICKSAND.slp",
+     {"QUICKSAND", "DLC_QUICKSAND"},
+     "QUICKSAND",
+     TerrainType::DLC2QuickSand,
+     TerrainType::UnbuildableRock,
+     FixedTerrain},
+    {"BLACK.slp",
+     {"BLACK", "DLC_BLACK"},
+     "DLC_BLACK",
+     TerrainType::DLC2ForgottenBlack,
+     TerrainType::UnbuildableRock,
+     FixedTerrain},
+    {"DLC_BEACH2.slp",
+     {"DLC_BEACH2"},
+     "DLC_BEACH2",
+     TerrainType::DLC3Beach2,
+     TerrainType::Beach,
+     FixedTerrain},
+    {"DLC_BEACH3.slp",
+     {"DLC_BEACH3"},
+     "DLC_BEACH3",
+     TerrainType::DLC3Beach3,
+     TerrainType::Beach,
+     FixedTerrain},
+    {"DLC_BEACH4.slp",
+     {"DLC_BEACH4"},
+     "DLC_BEACH4",
+     TerrainType::DLC3Beach4,
+     TerrainType::Beach,
+     FixedTerrain},
+    {"DLC_DRYROAD.slp",
+     {"DLC_DRYROAD"},
+     "DLC_DRYROAD",
+     TerrainType::DLC2DesertRoad,
+     TerrainType::Road2,
+     LandTerrain},
+    {"DLC_WATER4.slp",
+     {"DLC_WATER4"},
+     "DLC_WATER4",
+     TerrainType::DLC3WaterDeepOcean,
+     TerrainType::WaterDeep,
+     WaterTerrain},
+    {"DLC_WATER5.slp",
+     {"DLC_WATER5"},
+     "DLC_WATER5",
+     TerrainType::DLC3WaterAzure,
+     TerrainType::WaterShallow,
+     WaterTerrain},
+    {"DLC_JUNGLELEAVES.slp",
+     {"DLC_JUNGLELEAVES"},
+     "DLC_JUNGLELEAVES",
+     TerrainType::DLC3LeavesJungle,
+     TerrainType::Leaves,
+     LandTerrain},
+    {"DLC_JUNGLEROAD.slp",
+     {"DLC_JUNGLEROAD"},
+     "DLC_JUNGLEROAD",
+     TerrainType::DLC3RoadJungle,
+     TerrainType::FungusRoad,
+     LandTerrain},
+    {"DLC_JUNGLEGRASS.slp",
+     {"DLC_JUNGLEGRASS"},
+     "DLC_JUNGLEGRASS",
+     TerrainType::DLC3GrassJungle,
+     TerrainType::Grass2,
+     LandTerrain}};
+
+static const std::map<int, std::string> terrain_file_names = {
+    {TerrainType::Grass, "15001.slp"},
+    {TerrainType::WaterShallow, "15002.slp"},
+    {TerrainType::Beach, "15017.slp"},
+    {TerrainType::Desert3, "15007.slp"},
+    {TerrainType::WalkableShallows, "15014.slp"},
+    {TerrainType::Leaves, "15011.slp"},
+    {TerrainType::Desert, "15014.slp"},
+    {TerrainType::Grass3, "15009.slp"},
+    {TerrainType::Forest, "15011.slp"},
+    {TerrainType::Grass2, "15008.slp"},
+    {TerrainType::PalmDesert, "15010.slp"},
+    {TerrainType::Sand, "15010.slp"},
+    {TerrainType::SnowForest, "15029.slp"},
+    {TerrainType::WaterDeep, "15015.slp"},
+    {TerrainType::WaterNormal, "15016.slp"},
+    {TerrainType::Road, "15018.slp"},
+    {TerrainType::Road2, "15019.slp"},
+    {TerrainType::Ice2, "15024.slp"},
+    {TerrainType::FungusRoad, "15031.slp"},
+    {TerrainType::UnbuildableRock, "15033.slp"}};
+
 /**
  * Convert a random map script from HD Edition to WololoKingdoms. This involves
  * replacing constant values and adding terrain graphics for unsupported
@@ -279,185 +458,6 @@ static void upgrade_trees(TerrainType usedTerrain, TerrainType oldTerrain,
 static ZipRMSFiles
 convert_map(std::string& map, const std::string& map_name,
             const std::map<std::string, fs::path>& terrain_graphics) {
-  static const std::array<std::map<TerrainType, std::regex>, 6> terrain_groups =
-      {{// The Order is important, see the TerrainGroup Enum!
-        {},
-        {{TerrainType::WaterNormal, std::regex(R"(\WMED_WATER\W)")},
-         {TerrainType::WaterDeep, std::regex(R"(\WDEEP_WATER\W)")}},
-        {},
-        {{TerrainType::Grass, std::regex(R"(\WGRASS\W)")},
-         {TerrainType::Desert3, std::regex(R"(\WDIRT3\W)")},
-         {TerrainType::Desert, std::regex(R"(\WDIRT1\W)")},
-         {TerrainType::Grass3, std::regex(R"(\WGRASS3\W)")},
-         {TerrainType::Grass2, std::regex(R"(\WGRASS2\W)")},
-         {TerrainType::Sand, std::regex(R"(\WDESERT\W)")},
-         {TerrainType::Road, std::regex(R"(\WROAD\W)")},
-         {TerrainType::Road2, std::regex(R"(\WROAD2\W)")},
-         {TerrainType::FungusRoad, std::regex(R"(\WROAD3\W)")}},
-        {{TerrainType::Forest, std::regex(R"(\WFOREST\W)")},
-         {TerrainType::PalmDesert, std::regex(R"(\WPALM_DESERT\W)")},
-         {TerrainType::SnowForest, std::regex(R"(\WSNOW_FOREST\W)")}},
-        {{TerrainType::UnbuildableRock, std::regex(R"(\WDLC_ROCK\W)")},
-         {TerrainType::Ice2, std::regex(R"(\WICE\W)")}}}};
-
-  static const std::vector<MapConvertData> terrain_replacements = {
-      // slp_name, const_name_pattern, replaced_name_pattern, old_terrain_id,
-      // new_terrain_id, terrain_group
-      {"DRAGONFOREST.slp",
-       {"DRAGONFORES", "DRAGONFOREST"},
-       "DRAGONFOREST",
-       TerrainType::DLC2DragonTreeForest,
-       TerrainType::SnowForest,
-       ForestTerrain},
-      {"ACACIA_FOREST.slp",
-       {"ACCACIA_FOREST", "ACACIA_FOREST", "ACACIAFORES"},
-       "ACACIA_FOREST",
-       TerrainType::DLC2AcaciaForest,
-       TerrainType::DLC2Savannah,
-       None},
-      {"DLC_RAINFOREST.slp",
-       {"DLC_RAINFOREST"},
-       "DLC_RAINFOREST",
-       TerrainType::DLC3Rainforest,
-       TerrainType::Forest,
-       ForestTerrain},
-      {"BAOBAB.slp",
-       {"BAOBABS", "BAOBAB_FOREST"},
-       "BAOBAB_FOREST",
-       TerrainType::DLC2BaobabForest,
-       TerrainType::ImpassableCliffGrass,
-       None},
-      {"DLC_MANGROVESHALLOW.slp",
-       {"DLC_MANGROVESHALLOW"},
-       "DLC_MANGROVESHALLOW",
-       TerrainType::DLC3WalkableShallowsMangrove,
-       TerrainType::Desert2,
-       None},
-      {"DLC_MANGROVEFOREST.slp",
-       {"DLC_MANGROVEFOREST"},
-       "DLC_MANGROVEFOREST",
-       TerrainType::DLC3MangroveForest,
-       TerrainType::OakForest,
-       None},
-      {"DLC_NEWSHALLOW.slp",
-       {"DLC_NEWSHALLOW"},
-       "DLC_NEWSHALLOW",
-       TerrainType::DLC3WalkableShallowsAzure,
-       TerrainType::WalkableShallows,
-       FixedTerrain},
-      {"SAVANNAH.slp",
-       {"SAVANNAH", "DLC_SAVANNAH"},
-       "SAVANNAH",
-       TerrainType::DLC2Savannah,
-       TerrainType::Sand,
-       LandTerrain},
-      {"DIRT4.slp",
-       {"DIRT4", "DLC_DIRT4"},
-       "DIRT4",
-       TerrainType::DLC2Dirt4,
-       TerrainType::Desert3,
-       LandTerrain},
-      {"MOORLAND.slp",
-       {"DLC_MOORLAND", "MOORLAND"},
-       "DLC_MOORLAND",
-       TerrainType::DLC2Moorland,
-       TerrainType::Grass3,
-       LandTerrain},
-      {"CRACKEDIT.slp",
-       {"CRACKEDIT"},
-       "CRACKEDIT",
-       TerrainType::DLC2CrackedDesert,
-       TerrainType::SnowRoad,
-       None},
-      {"QUICKSAND.slp",
-       {"QUICKSAND", "DLC_QUICKSAND"},
-       "QUICKSAND",
-       TerrainType::DLC2QuickSand,
-       TerrainType::UnbuildableRock,
-       FixedTerrain},
-      {"BLACK.slp",
-       {"BLACK", "DLC_BLACK"},
-       "DLC_BLACK",
-       TerrainType::DLC2ForgottenBlack,
-       TerrainType::UnbuildableRock,
-       FixedTerrain},
-      {"DLC_BEACH2.slp",
-       {"DLC_BEACH2"},
-       "DLC_BEACH2",
-       TerrainType::DLC3Beach2,
-       TerrainType::Beach,
-       FixedTerrain},
-      {"DLC_BEACH3.slp",
-       {"DLC_BEACH3"},
-       "DLC_BEACH3",
-       TerrainType::DLC3Beach3,
-       TerrainType::Beach,
-       FixedTerrain},
-      {"DLC_BEACH4.slp",
-       {"DLC_BEACH4"},
-       "DLC_BEACH4",
-       TerrainType::DLC3Beach4,
-       TerrainType::Beach,
-       FixedTerrain},
-      {"DLC_DRYROAD.slp",
-       {"DLC_DRYROAD"},
-       "DLC_DRYROAD",
-       TerrainType::DLC2DesertRoad,
-       TerrainType::Road2,
-       LandTerrain},
-      {"DLC_WATER4.slp",
-       {"DLC_WATER4"},
-       "DLC_WATER4",
-       TerrainType::DLC3WaterDeepOcean,
-       TerrainType::WaterDeep,
-       WaterTerrain},
-      {"DLC_WATER5.slp",
-       {"DLC_WATER5"},
-       "DLC_WATER5",
-       TerrainType::DLC3WaterAzure,
-       TerrainType::WaterShallow,
-       WaterTerrain},
-      {"DLC_JUNGLELEAVES.slp",
-       {"DLC_JUNGLELEAVES"},
-       "DLC_JUNGLELEAVES",
-       TerrainType::DLC3LeavesJungle,
-       TerrainType::Leaves,
-       LandTerrain},
-      {"DLC_JUNGLEROAD.slp",
-       {"DLC_JUNGLEROAD"},
-       "DLC_JUNGLEROAD",
-       TerrainType::DLC3RoadJungle,
-       TerrainType::FungusRoad,
-       LandTerrain},
-      {"DLC_JUNGLEGRASS.slp",
-       {"DLC_JUNGLEGRASS"},
-       "DLC_JUNGLEGRASS",
-       TerrainType::DLC3GrassJungle,
-       TerrainType::Grass2,
-       LandTerrain}};
-
-  static const std::map<int, std::string> terrain_file_names = {
-      {TerrainType::Grass, "15001.slp"},
-      {TerrainType::WaterShallow, "15002.slp"},
-      {TerrainType::Beach, "15017.slp"},
-      {TerrainType::Desert3, "15007.slp"},
-      {TerrainType::WalkableShallows, "15014.slp"},
-      {TerrainType::Leaves, "15011.slp"},
-      {TerrainType::Desert, "15014.slp"},
-      {TerrainType::Grass3, "15009.slp"},
-      {TerrainType::Forest, "15011.slp"},
-      {TerrainType::Grass2, "15008.slp"},
-      {TerrainType::PalmDesert, "15010.slp"},
-      {TerrainType::Sand, "15010.slp"},
-      {TerrainType::SnowForest, "15029.slp"},
-      {TerrainType::WaterDeep, "15015.slp"},
-      {TerrainType::WaterNormal, "15016.slp"},
-      {TerrainType::Road, "15018.slp"},
-      {TerrainType::Road2, "15019.slp"},
-      {TerrainType::Ice2, "15024.slp"},
-      {TerrainType::FungusRoad, "15031.slp"},
-      {TerrainType::UnbuildableRock, "15033.slp"}};
-
   ZipRMSFiles map_files;
   UsedTerrainsMap used_terrains;
 
