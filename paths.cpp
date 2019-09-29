@@ -117,8 +117,7 @@ fs::path getSteamPath() {
 
 fs::path getOutPath(fs::path hdPath) {
   std::string outPathString =
-      wstrtostr(readRegistryKey(L"Microsoft\\DirectPlay\\Applications\\Age of "
-                                L"Empires II - The Conquerors Expansion",
+      wstrtostr(readRegistryKey(LR"(Microsoft\DirectPlay\Applications\Age of Empires II - The Conquerors Expansion)",
                                 L"CurrentDirectory"));
   if (outPathString.at(outPathString.length() - 1) != '\\')
     outPathString += "\\";
