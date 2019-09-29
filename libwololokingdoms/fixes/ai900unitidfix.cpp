@@ -12,7 +12,7 @@ namespace wololo {
  * work
  */
 
-static std::vector<std::pair<int, int>> const unitsIDtoSwap = {
+static std::array<std::pair<int, int>, 34> const unitsIDtoSwap{{
     {1103, 529}, // Fire Galley, Fire Ship
     {1104, 527}, // Demolition Raft, Demolition Ship NOTE: These two are special
                  // to make the tech tree work
@@ -50,7 +50,7 @@ static std::vector<std::pair<int, int>> const unitsIDtoSwap = {
     {946, 848},  // Noncut Ballista Elephant, TDONK_D
     {1004, 861}, // Caravel, mkyby_D
     {1122, 891}  // Elite Ballista Ele, SGTWR_D
-};
+}};
 
 static void swapId(int32_t* val, int32_t id1, int32_t id2) {
   if (*val == id1) {
