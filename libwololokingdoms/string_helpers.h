@@ -34,5 +34,5 @@ std::string concat_stream(std::istream& stream);
 /**
  * Convert a std::string from encoding `from` to encoding `to`.
  */
-std::string iconvert(const std::string& input, const std::string& from,
+std::string iconvert(std::string& input, const std::string& from,
                      const std::string& to);

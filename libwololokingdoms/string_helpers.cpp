@@ -14,7 +14,7 @@ void replace_all(std::string& str, const std::string& from,
   }
 }
 
-std::wstring strtowstr(std::string narrow) {
+std::wstring strtowstr(const std::string& narrow) {
   std::wstring wide;
   for (auto c : narrow) {
     wchar_t w = c;
@@ -23,7 +23,7 @@ std::wstring strtowstr(std::string narrow) {
   return wide;
 }
 
-std::string wstrtostr(std::wstring wide) {
+std::string wstrtostr(const std::wstring& wide) {
   std::string narrow;
   for (auto c : wide) {
     char n = c;
@@ -44,17 +44,20 @@ std::string concat_stream(std::istream& stream) {
   return strstr.str();
 }
 
-std::string iconvert(const std::string& input, const std::string& from,
-                     const std::string& to) {
+std::string iconvert(
+    std::string& input,
+    const std::string& from,
+    const std::string& to) {
 #ifdef ICONV_SECOND_ARGUMENT_IS_CONST
-  const char* in_str = input.c_str();
+  auto in_str = input.c_str();
 #else
-  char* in_str = const_cast<char*>(input.c_str());
+  auto in_str = &input[0];
 #endif
   auto in_size = input.length();
   size_t out_size = in_size * 2;
-  char* result = new char[out_size];
-  char* out = result; // separate value because iconv advances the pointer
+  std::string result;
+  result.reserve(out_size);
+  char* out = &result[0]; // separate value because iconv advances the pointer
 
   iconv_t convert = iconv_open(to.c_str(), from.c_str());
   if (convert == (iconv_t)-1) {
