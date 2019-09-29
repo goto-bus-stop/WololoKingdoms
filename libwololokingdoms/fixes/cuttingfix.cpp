@@ -36,13 +36,13 @@ void cuttingPatch(genie::DatFile* aocDat) {
   aocDat->UnitHeaders[newOnagerID] = aocDat->UnitHeaders[onagerID];
   aocDat->UnitHeaders[onagerID].TaskList.erase(
       aocDat->UnitHeaders[onagerID].TaskList.begin() + 4);
-  for (size_t i = 0; i < aocDat->Civs.size(); i++) {
-    aocDat->Civs[i].Units[newOnagerID] = aocDat->Civs[i].Units[onagerID];
+  for (auto& civ : aocDat->Civs) {
+    civ.Units[newOnagerID] = civ.Units[onagerID];
     // TODO replace onagerID in here with newOnagerID with the new data upate
-    aocDat->Civs[i].Units[onagerID].Combat.BlastAttackLevel = 2;
-    aocDat->Civs[i].Units[onagerID].LanguageDLLCreation += 205;
-    aocDat->Civs[i].Units[onagerID].LanguageDLLHelp += 205;
-    aocDat->Civs[i].Units[onagerID].LanguageDLLName += 205;
+    civ.Units[onagerID].Combat.BlastAttackLevel = 2;
+    civ.Units[onagerID].LanguageDLLCreation += 205;
+    civ.Units[onagerID].LanguageDLLHelp += 205;
+    civ.Units[onagerID].LanguageDLLName += 205;
   }
   effect.UnitClassID = newOnagerID;
   aocDat->Effects[onagerCuttingEffectID].EffectCommands.push_back(effect);
