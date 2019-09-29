@@ -1659,13 +1659,13 @@ short WKConverter::duplicateGraphic(genie::DatFile* aocDat,
      * Flames.
      */
     auto compIt = aocDat->Graphics[compareID].Deltas.begin();
-    for (const auto& it : newGraphic.Deltas) {
-      if (it.GraphicID != -1 &&
+    for (auto& delta : newGraphic.Deltas) {
+      if (delta.GraphicID != -1 &&
           std::find(duplicatedGraphics.begin(), duplicatedGraphics.end(),
-                    it.GraphicID) == duplicatedGraphics.end())
-        it.GraphicID =
+                    delta.GraphicID) == duplicatedGraphics.end())
+        delta.GraphicID =
             duplicateGraphic(aocDat, replacedGraphics, duplicatedGraphics,
-                             it.GraphicID, compIt->GraphicID, offset);
+                             delta.GraphicID, compIt->GraphicID, offset);
       compIt++;
     }
     aocDat->Graphics.at(newGraphicID) = newGraphic;
