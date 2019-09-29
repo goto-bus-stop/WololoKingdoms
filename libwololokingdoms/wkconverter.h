@@ -149,7 +149,7 @@ private:
                      const std::map<int, std::regex>& patterns);
   void upgradeTrees(int usedTerrain, int oldTerrain, std::string& map);
   void createZRmap(std::map<std::string, fs::path>& terrainOverrides,
-                   fs::path outputDir, std::string mapName);
+                   const fs::path& outputDir, const std::string& mapName);
   void terrainSwap(genie::DatFile* hdDat, genie::DatFile* aocDat, int tNew,
                    int tOld, int slpID);
   void indexDrsFiles(fs::path const& src, bool expansionFiles = true,
@@ -163,9 +163,9 @@ private:
   std::pair<int, std::string> parseHDTextLine(std::string line);
   void convertLanguageFile(std::ifstream& in, std::ofstream& iniOut,
                            std::map<int, std::string>& langReplacement);
-  void createLanguageFile(fs::path languageIniPath, fs::path patchFolder);
-  void loadGameStrings(std::map<int, std::string>& langReplacement, fs::path file);
-  void loadModdedStrings(fs::path moddedStringsFile,
+  void createLanguageFile(const fs::path& languageIniPath, const fs::path& patchFolder);
+  void loadGameStrings(std::map<int, std::string>& langReplacement, const fs::path& file);
+  void loadModdedStrings(const fs::path& moddedStringsFile,
                          std::map<int, std::string>& langReplacement);
   void makeRandomMapScriptsDrs(std::ofstream& out, const fs::path& drsDir);
   void makeDrs(std::ofstream& out);
@@ -174,7 +174,7 @@ private:
   void copyWallFiles(const fs::path& inputDir);
   void createMusicPlaylist(const fs::path& inputDir, const fs::path& outputDir);
   void transferHdDatElements(genie::DatFile* hdDat, genie::DatFile* aocDat);
-  void adjustArchitectureFlags(genie::DatFile* aocDat, fs::path flagFilename);
+  void adjustArchitectureFlags(genie::DatFile* aocDat, const fs::path& flagFilename);
   void patchArchitectures(genie::DatFile* aocDat);
   bool checkGraphics(genie::DatFile* aocDat, short graphicID,
                      std::vector<int> checkedGraphics);
@@ -188,12 +188,12 @@ private:
   bool identifyHotkeyFile(const fs::path& directory, fs::path& maxHki,
                           fs::path& lastEditedHki);
   void copyHotkeyFile(const fs::path& maxHki, const fs::path& lastEditedHki,
-                      fs::path dst);
+                      const fs::path& dst);
   void removeWkHotkeys();
   void hotkeySetup();
-  void refreshSymlink(const fs::path& oldDir, const fs::path& newDir,
+  void refreshSymlink(const fs::path& oldPath, const fs::path& newPath,
                       const LinkType type, bool copyOldContents = false);
   void symlinkSetup(const fs::path& oldDir, const fs::path& newDir,
                     bool dataMod = false);
-  void setupFolders(fs::path xmlOutPathUP);
+  void setupFolders(const fs::path& xmlOutPathUP);
 };

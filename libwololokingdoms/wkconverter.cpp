@@ -34,7 +34,7 @@
 #include <string>
 
 // this copy is unfortunate but cfs::resolve returns a temporary :/
-const fs::path resolve_path(const fs::path& input) {
+static fs::path resolve_path(const fs::path& input) {
 #ifdef _WIN32
   return input;
 #else
@@ -42,7 +42,7 @@ const fs::path resolve_path(const fs::path& input) {
 #endif
 }
 
-void WKConverter::loadGameStrings(std::map<int, std::string>& langReplacement, fs::path file) {
+void WKConverter::loadGameStrings(std::map<int, std::string>& langReplacement, const fs::path& file) {
   std::string line;
   std::ifstream translationFile(file);
   while (std::getline(translationFile, line)) {
@@ -281,8 +281,8 @@ std::pair<int, std::string> WKConverter::parseHDTextLine(std::string line) {
   return std::make_pair(nb, line);
 }
 
-void WKConverter::createLanguageFile(fs::path languageIniPath,
-                                     fs::path patchFolder) {
+void WKConverter::createLanguageFile(const fs::path& languageIniPath,
+                                     const fs::path& patchFolder) {
   std::map<int, std::string> langReplacement;
   fs::path keyValuesStringsPath =
       settings.language == "zht"
@@ -344,7 +344,7 @@ void WKConverter::createLanguageFile(fs::path languageIniPath,
 }
 
 void WKConverter::loadModdedStrings(
-    fs::path moddedStringsFile, std::map<int, std::string>& langReplacement) {
+    const fs::path& moddedStringsFile, std::map<int, std::string>& langReplacement) {
   std::ifstream modLang(moddedStringsFile);
   std::string line;
   while (std::getline(modLang, line)) {
@@ -375,7 +375,7 @@ void WKConverter::convertLanguageFile(
     } catch (std::invalid_argument const& e) {
       continue;
     }
-    if (langReplacement.count(nb)) {
+    if (langReplacement.count(nb) != 0) {
       // this string has been changed by one of our patches (modified attributes
       // etc.)
       line = langReplacement[nb];
@@ -1094,7 +1094,7 @@ bool WKConverter::isTerrainUsed(int terrain, std::map<int, bool>& terrainsUsed,
 }
 
 void WKConverter::createZRmap(std::map<std::string, fs::path>& terrainOverrides,
-                              fs::path outputDir, std::string mapName) {
+                              const fs::path& outputDir, const std::string& mapName) {
   fs::path outname = outputDir / ("ZR@" + mapName);
   std::ofstream outstream(outname, std::ios_base::out | std::ios_base::binary);
   outstream.exceptions(std::ofstream::failbit | std::ofstream::badbit);
@@ -1171,7 +1171,7 @@ void WKConverter::transferHdDatElements(genie::DatFile* hdDat,
 }
 
 void WKConverter::adjustArchitectureFlags(genie::DatFile* aocDat,
-                                          fs::path flagFilename) {
+                                          const fs::path& flagFilename) {
   std::string line;
   std::ifstream flagFile(flagFilename);
   while (std::getline(flagFile, line)) {
@@ -1513,9 +1513,10 @@ short WKConverter::duplicateGraphic(genie::DatFile* aocDat,
                                     short graphicID, short compareID,
                                     short offset, bool civGroups) {
 
-  if (replacedGraphics.count(
-          graphicID)) // We've already replaced this, return the new graphics ID
+  if (replacedGraphics.count(graphicID) != 0) {
+    // We've already replaced this, return the new graphics ID
     return replacedGraphics[graphicID];
+  }
 
   /*
    * Check if at least one SLP in this graphic or graphic deltas is in the right
@@ -1641,7 +1642,7 @@ short WKConverter::duplicateGraphic(genie::DatFile* aocDat,
   }
 
   char civLetter = newGraphic.Name.at(newGraphic.Name.length() - 1);
-  if (civLetters.count(civLetter)) {
+  if (civLetters.count(civLetter) != 0) {
     if (newGraphic.FileName == newGraphic.Name) {
       newGraphic.FileName.replace(newGraphic.FileName.length() - 1, 1, civCode);
       newGraphic.Name = newGraphic.FileName;
@@ -1657,9 +1658,8 @@ short WKConverter::duplicateGraphic(genie::DatFile* aocDat,
      * comparison, this is usually with damage graphics and different amount of
      * Flames.
      */
-    std::vector<genie::GraphicDelta>::iterator compIt =
-        aocDat->Graphics[compareID].Deltas.begin();
-    for (auto& it : newGraphic.Deltas) {
+    auto compIt = aocDat->Graphics[compareID].Deltas.begin();
+    for (const auto& it : newGraphic.Deltas) {
       if (it.GraphicID != -1 &&
           std::find(duplicatedGraphics.begin(), duplicatedGraphics.end(),
                     it.GraphicID) == duplicatedGraphics.end())
@@ -1724,14 +1724,12 @@ bool WKConverter::identifyHotkeyFile(const fs::path& directory,
       }
     }
   }
-  if (maxHkiNumber != -1)
-    return true;
-  else
-    return false;
+
+  return maxHkiNumber != -1;
 }
 
 void WKConverter::copyHotkeyFile(const fs::path& maxHki,
-                                 const fs::path& lastEditedHki, fs::path dst) {
+                                 const fs::path& lastEditedHki, const fs::path& dst) {
   /*
    * See identifyHotkeyFile for extra info on maxHki, lastEditedHki
    * copies the .hki file maxHki into the directory dst. If maxHki already
@@ -1884,7 +1882,7 @@ static void addMonkGraphicsToCiv(std::map<int, fs::path>& slpFiles,
                                  const fs::path& newMonkGraphicsDir,
                                  int prefix) {
   for (const auto& current : fs::directory_iterator(newMonkGraphicsDir)) {
-    auto src = current.path();
+    const auto& src = current.path();
     std::string extension = src.extension().string();
     int id = prefix * 10000 + atoi(src.stem().string().c_str());
     slpFiles[id] = src;
@@ -1984,7 +1982,7 @@ void WKConverter::symlinkSetup(const fs::path& oldDir, const fs::path& newDir,
                    newDir / "Data" / "gamedata_x1_p1.drs", LinkType::Soft);
   }
   for (const auto& current : fs::directory_iterator(oldDir)) {
-    fs::path currentPath = current.path();
+    const fs::path& currentPath = current.path();
     std::string extension = currentPath.extension().string();
     if (extension == ".hki") {
       refreshSymlink(resolve_path(currentPath), newDir / currentPath.filename(),
@@ -2077,7 +2075,7 @@ int WKConverter::retryInstall() {
   return result;
 }
 
-void WKConverter::setupFolders(fs::path xmlOutPathUP) {
+void WKConverter::setupFolders(const fs::path& xmlOutPathUP) {
 
   fs::path languageIniPath = settings.vooblyDir / "language.ini";
   fs::path versionIniPath = settings.vooblyDir / "version.ini";
@@ -2379,13 +2377,13 @@ int WKConverter::run() {
     genie::DatFile aocDat;
     genie::DatFile hdDat;
     aocDat.setGameVersion(genie::GameVersion::GV_TC);
-    aocDat.load(aocDatPath.string().c_str());
+    aocDat.load(aocDatPath.string());
     listener->increaseProgress(3); // 28
 
     listener->setInfo("working$\n$workingHD");
 
     hdDat.setGameVersion(genie::GameVersion::GV_Cysion);
-    hdDat.load(hdDatPath.string().c_str());
+    hdDat.load(hdDatPath.string());
     listener->increaseProgress(3); // 31
 
     listener->setInfo("working$\n$workingInterface");
@@ -2423,11 +2421,14 @@ int WKConverter::run() {
 
     patchArchitectures(&aocDat);
 
-    if (settings.fixFlags)
+    if (settings.fixFlags) {
       adjustArchitectureFlags(&aocDat, resourceDir / "WKFlags.txt");
+    }
 
-    if (settings.useShortWalls) // This needs to be AFTER patchArchitectures
+    // This needs to be AFTER patchArchitectures
+    if (settings.useShortWalls) {
       copyWallFiles(wallsInputDir);
+    }
 
     listener->increaseProgress(1); // 64
     // Add monk graphics
@@ -2538,7 +2539,7 @@ int WKConverter::run() {
     cfs::remove(outputDatPath);
     genie::DatFile dat;
     dat.setGameVersion(genie::GameVersion::GV_TC);
-    dat.load(hdDatPath.string().c_str());
+    dat.load(hdDatPath.string());
     if (settings.fixFlags)
       adjustArchitectureFlags(&dat, resourceDir / "WKFlags.txt");
     dat.saveAs(outputDatPath.string().c_str());
@@ -2675,8 +2676,7 @@ int WKConverter::run() {
 
     std::string newExeName;
     if (settings.patch >= 0 &&
-        (newExeName = std::get<4>(settings.dataModList[settings.patch])) !=
-            "") {
+        !(newExeName = std::get<4>(settings.dataModList[settings.patch])).empty()) {
       if (cfs::exists(settings.outPath / "age2_x1" / (newExeName + ".exe"))) {
         cfs::rename(settings.outPath / "age2_x1" / (newExeName + ".exe"),
                     settings.outPath / "age2_x1" / (newExeName + ".exe.bak"));
