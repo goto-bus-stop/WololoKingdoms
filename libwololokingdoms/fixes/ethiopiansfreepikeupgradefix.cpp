@@ -8,16 +8,11 @@ void ethiopiansPikePatch(genie::DatFile* aocDat) {
    * In AOC, free tech effects must be in the civ tech tree in order to work
    */
 
-  size_t const freePikeHalbTechId = 616;
-  size_t const ethiopiansTechTreeTechId = 48;
+  const size_t FREE_PIKE_HALB_TECH_ID = 616;
+  const size_t ETHIOPIAN_TECH_TREE_TECH_ID = 48;
 
-  std::vector<genie::EffectCommand>* effectsPtr =
-      &aocDat->Effects[freePikeHalbTechId].EffectCommands;
-  for (std::vector<genie::EffectCommand>::iterator it = effectsPtr->begin(),
-                                                   end = effectsPtr->end();
-       it != end; it++) {
-    aocDat->Effects[ethiopiansTechTreeTechId].EffectCommands.push_back(
-        *it); // copy the effects into the ethiopians tech tree
+  for (auto& command : aocDat->Effects[FREE_PIKE_HALB_TECH_ID].EffectCommands) {
+    aocDat->Effects[ETHIOPIAN_TECH_TREE_TECH_ID].EffectCommands.push_back(command); // copy the effects into the ethiopians tech tree
   }
 }
 
