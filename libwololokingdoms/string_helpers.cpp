@@ -3,6 +3,7 @@
 #include <cctype> // std::tolower
 #include <iconv.h>
 #include <istream>
+#include <memory>
 #include <string>
 
 void replace_all(std::string& str, const std::string& from,
@@ -55,9 +56,8 @@ std::string iconvert(
 #endif
   auto in_size = input.length();
   size_t out_size = in_size * 2;
-  std::string result;
-  result.reserve(out_size);
-  char* out = &result[0]; // separate value because iconv advances the pointer
+  auto result = std::make_unique<char[]>(out_size);
+  char* out = result.get(); // separate value because iconv advances the pointer
 
   iconv_t convert = iconv_open(to.c_str(), from.c_str());
   if (convert == (iconv_t)-1) {
@@ -70,5 +70,5 @@ std::string iconvert(
 
   iconv_close(convert);
 
-  return result;
+  return result.get();
 }
