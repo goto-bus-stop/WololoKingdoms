@@ -1,15 +1,15 @@
 #include "wk_xml.h"
 #include <ostream>
 
-void write_wk_xml(std::ostream& output, int dlc_level) {
-  auto name = dlc_level >= 3
+void write_wk_xml(std::ostream& output, int patch_level) {
+  auto name = patch_level >= 3
                   ? "Age of Empires II: Rise of the Rajas"
-                  : dlc_level >= 2 ? "Age of Empires II: African Kingdoms"
+                  : patch_level >= 2 ? "Age of Empires II: African Kingdoms"
                                    : "Age of Empires II: The Forgotten";
 
-  auto path = dlc_level >= 3
+  auto path = patch_level >= 3
                   ? "WololoKingdoms"
-                  : dlc_level >= 2 ? "WololoKingdoms AK" : "WololoKingdoms FE";
+                  : patch_level >= 2 ? "WololoKingdoms AK" : "WololoKingdoms FE";
 
   output
       // BOM is required by UP
@@ -74,7 +74,7 @@ void write_wk_xml(std::ostream& output, int dlc_level) {
       << R"(    <civilization id="24" name="portuguese" soundFile="stream\portuguese.mp3" scoutUnit="448" uniqueUnit="106" eliteUniqueUnit="114" uniqueUnitLine="106" uniqueUnitUpgrade="563" uniqueResearch="573" />)"
       << std::endl;
 
-  if (dlc_level >= 2) {
+  if (patch_level >= 2) {
     output
         << R"(    <civilization id="25" name="ethiopian" soundFile="stream\ethiopians.mp3" scoutUnit="448" uniqueUnit="453" eliteUniqueUnit="459" uniqueUnitLine="453" uniqueUnitUpgrade="569" uniqueResearch="575" />)"
         << std::endl
@@ -84,7 +84,7 @@ void write_wk_xml(std::ostream& output, int dlc_level) {
         << std::endl;
   }
 
-  if (dlc_level >= 3) {
+  if (patch_level >= 3) {
     output
         << R"(    <civilization id="28" name="khmer" soundFile="stream\khmer.mp3" scoutUnit="448" uniqueUnit="760" eliteUniqueUnit="891" uniqueUnitLine="760" uniqueUnitUpgrade="615" uniqueResearch="623" />)"
         << std::endl
