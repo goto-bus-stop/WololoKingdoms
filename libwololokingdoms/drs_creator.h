@@ -1,10 +1,11 @@
 #pragma once
+#include "drs_base.h"
 #include <fs.h>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <utility>
 #include <vector>
-#include <drs_base.h>
 
 class DRSCreatorTableEntry;
 class DRSCreatorTable;
@@ -94,10 +95,12 @@ inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
   tables_[table].addFile(id, data);
 }
 
-inline void DRSCreator::addFile(DRSTableType table, uint32_t id, fs::path filename) {
+inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
+                                fs::path filename) {
   tables_[table].addFile(id, std::move(filename));
 }
 
-inline void DRSCreator::addFile(DRSTableType table, uint32_t id, std::vector<char> data) {
+inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
+                                std::vector<char> data) {
   tables_[table].addFile(id, std::move(data));
 }

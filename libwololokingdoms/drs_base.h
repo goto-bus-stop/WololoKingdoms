@@ -5,4 +5,3 @@ enum class DRSTableType {
   Slp = 0x736c7020,  // 'slp '
   Wav = 0x77617620   // 'wav '
 };
-

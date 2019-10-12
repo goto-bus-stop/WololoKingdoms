@@ -1,11 +1,11 @@
 #pragma once
-#include <mio/mmap.hpp>
-#include <fs.h>
-#include <vector>
-#include <string_view>
+#include "drs_base.h"
 #include <cstdio>
 #include <cstring>
-#include <drs_base.h>
+#include <fs.h>
+#include <mio/mmap.hpp>
+#include <string_view>
+#include <vector>
 
 struct DRSReaderHeader {
 private:
@@ -19,11 +19,11 @@ public:
   DRSReaderHeader() = default;
   DRSReaderHeader(const DRSReaderHeader&) = default;
 
-  std::string_view copyright() const { return copyright_; }
-  std::string_view version() const { return version_; }
-  std::string_view password() const { return password_; }
-  int32_t num_tables() const { return num_tables_; }
-  int32_t files_offset() const { return files_offset_; }
+  [[nodiscard]] std::string_view copyright() const { return copyright_; }
+  [[nodiscard]] std::string_view version() const { return version_; }
+  [[nodiscard]] std::string_view password() const { return password_; }
+  [[nodiscard]] int32_t num_tables() const { return num_tables_; }
+  [[nodiscard]] int32_t files_offset() const { return files_offset_; }
 };
 
 struct DRSReaderTable {
@@ -36,9 +36,9 @@ public:
   DRSReaderTable() = default;
   DRSReaderTable(const DRSReaderTable&) = default;
 
-  DRSTableType file_type() const { return type_; }
-  int32_t offset() const { return offset_; }
-  int32_t num_files() const { return num_files_; }
+  [[nodiscard]] DRSTableType file_type() const { return type_; }
+  [[nodiscard]] int32_t offset() const { return offset_; }
+  [[nodiscard]] int32_t num_files() const { return num_files_; }
 };
 
 struct DRSReaderFile {
@@ -51,9 +51,9 @@ public:
   DRSReaderFile() = default;
   DRSReaderFile(const DRSReaderFile&) = default;
 
-  int32_t id() const { return id_; }
-  int32_t offset() const { return offset_; }
-  int32_t size() const { return size_; }
+  [[nodiscard]] int32_t id() const { return id_; }
+  [[nodiscard]] int32_t offset() const { return offset_; }
+  [[nodiscard]] int32_t size() const { return size_; }
 };
 
 class DRSReader {
@@ -63,13 +63,13 @@ private:
 public:
   DRSReader(fs::path filename) : mmap_(filename.string()) {}
 
-  DRSReaderHeader header() const {
+  [[nodiscard]] DRSReaderHeader header() const {
     DRSReaderHeader header = {};
     std::memcpy(&header, mmap_.data(), sizeof(DRSReaderHeader));
     return header;
   }
 
-  std::vector<DRSReaderTable> read_tables() const {
+  [[nodiscard]] std::vector<DRSReaderTable> read_tables() const {
     auto h = this->header();
     std::vector<DRSReaderTable> tables;
     tables.reserve(h.num_tables());
@@ -83,7 +83,8 @@ public:
     return tables;
   }
 
-  std::vector<DRSReaderFile> read_files(const DRSReaderTable& table) const {
+  [[nodiscard]] std::vector<DRSReaderFile>
+  read_files(const DRSReaderTable& table) const {
     std::vector<DRSReaderFile> files;
     files.reserve(table.num_files());
     auto raw_bytes = mmap_.data() + table.offset();
@@ -96,7 +97,7 @@ public:
     return files;
   }
 
-  std::vector<char> read_file(const DRSReaderFile& file) const {
+  [[nodiscard]] std::vector<char> read_file(const DRSReaderFile& file) const {
     auto raw_bytes = mmap_.data() + file.offset();
     return std::vector(raw_bytes, raw_bytes + file.size());
   }
