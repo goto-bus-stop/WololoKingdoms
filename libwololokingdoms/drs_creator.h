@@ -4,12 +4,7 @@
 #include <map>
 #include <utility>
 #include <vector>
-
-enum class DRSTableType {
-  Bina = 0x62696e61, // 'bina'
-  Slp = 0x736c7020,  // 'slp '
-  Wav = 0x77617620   // 'wav '
-};
+#include <drs_base.h>
 
 class DRSCreatorTableEntry;
 class DRSCreatorTable;
@@ -22,12 +17,15 @@ class DRSCreatorTableEntry {
   // Owned by this object
   std::istream* stream_ = nullptr;
   fs::path filename_;
+  std::optional<std::vector<char>> bytes_;
 
 public:
   inline DRSCreatorTableEntry(uint32_t id, std::istream* data)
       : id_(id), stream_(data) {}
   inline DRSCreatorTableEntry(uint32_t id, fs::path filename)
       : id_(id), filename_(std::move(filename)) {}
+  inline DRSCreatorTableEntry(uint32_t id, std::vector<char> data)
+      : id_(id), bytes_(std::move(data)) {}
   inline DRSCreatorTableEntry(DRSCreatorTableEntry&& entry)
       : id_(entry.id_), stream_(entry.stream_),
         filename_(std::move(entry.filename_)) {
@@ -54,7 +52,8 @@ class DRSCreatorTable {
 
 public:
   inline void addFile(uint32_t id, std::istream* data);
-  inline void addFile(uint32_t id, const fs::path& filename);
+  inline void addFile(uint32_t id, fs::path filename);
+  inline void addFile(uint32_t id, std::vector<char> data);
 
 private:
   inline void setOffset(uint32_t offset);
@@ -73,8 +72,8 @@ public:
   inline DRSCreator(std::ostream& output) : output_(output) {}
 
   inline void addFile(DRSTableType table, uint32_t id, std::istream* data);
-  inline void addFile(DRSTableType table, uint32_t id,
-                      const fs::path& filename);
+  inline void addFile(DRSTableType table, uint32_t id, fs::path filename);
+  inline void addFile(DRSTableType table, uint32_t id, std::vector<char> data);
   void commit();
 };
 
@@ -82,8 +81,12 @@ inline void DRSCreatorTable::addFile(uint32_t id, std::istream* data) {
   files_.emplace_back(id, data);
 }
 
-inline void DRSCreatorTable::addFile(uint32_t id, const fs::path& filename) {
-  files_.emplace_back(id, filename);
+inline void DRSCreatorTable::addFile(uint32_t id, fs::path filename) {
+  files_.emplace_back(id, std::move(filename));
+}
+
+inline void DRSCreatorTable::addFile(uint32_t id, std::vector<char> data) {
+  files_.emplace_back(id, std::move(data));
 }
 
 inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
@@ -91,7 +94,10 @@ inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
   tables_[table].addFile(id, data);
 }
 
-inline void DRSCreator::addFile(DRSTableType table, uint32_t id,
-                                const fs::path& filename) {
-  tables_[table].addFile(id, filename);
+inline void DRSCreator::addFile(DRSTableType table, uint32_t id, fs::path filename) {
+  tables_[table].addFile(id, std::move(filename));
+}
+
+inline void DRSCreator::addFile(DRSTableType table, uint32_t id, std::vector<char> data) {
+  tables_[table].addFile(id, std::move(data));
 }

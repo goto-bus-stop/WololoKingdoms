@@ -474,191 +474,62 @@ void WKConverter::makeDrs(std::ofstream& out) {
   out.close();
 }
 
+#include "drs_reader.h"
 /** A method to add extra (slp) files to an already existing drs file.
  *  Reads the old files, changes the offsets where necessary and writes back to
  * a new file with changed offsets and the new files in: The stream of the old
  * drs file out: The stream of the new drs file
  */
-void WKConverter::editDrs(std::ifstream* in, std::ofstream* out) {
+void WKConverter::editDrs(fs::path input_path, std::ostream& out) {
+  DRSReader reader(input_path);
+  DRSCreator writer(out);
 
-  int numberOfSlpFiles =
-      slpFiles.size(); // These are the new files to be added to the drs
-
-  listener->log(std::string("number of files") +
-                std::to_string(numberOfSlpFiles));
+  // These are the new files to be added to the drs
+  listener->log("number of new slps: " + std::to_string(slpFiles.size()));
   listener->setInfo("working$\n$workingDrs2");
 
-  char* buffer;
-  char* intBuffer = new char[4];
-  listener->increaseProgress(1); // 22
-
-  listener->log("write header");
-  // header, no changes here
-  int length = sizeof(DrsHeader::copyright) + sizeof(DrsHeader::version) +
-               sizeof(DrsHeader::ftype) + sizeof(DrsHeader::table_count);
-  buffer = new char[length];
-  in->read(buffer, length);
-  listener->log(buffer);
-  out->write(buffer, length);
-  listener->increaseProgress(1); // 23
-
-  // There are extra file infos added, so the offset of the first file changes
-  int extraOffset = sizeof(DrsFileInfo) * (numberOfSlpFiles);
-  in->read(intBuffer, 4);
-  int offsetOfFirstFile = *(reinterpret_cast<int*>(intBuffer));
-  offsetOfFirstFile += extraOffset;
-  out->write(reinterpret_cast<const char*>(&offsetOfFirstFile),
-             sizeof(DrsHeader::file_offset));
-  listener->increaseProgress(1); // 24
-
-  listener->log("slp table info");
-  // slp table info
-  length = sizeof(DrsTableInfo::file_extension) +
-           sizeof(DrsTableInfo::file_info_offset);
-  buffer = new char[length];
-  in->read(buffer, length);
-  out->write(buffer, length);
-  in->read(intBuffer, 4);
-  int numberOfOldSlpFiles = *(reinterpret_cast<int*>(intBuffer));
-  listener->log(intBuffer);
-  listener->log(std::to_string(numberOfOldSlpFiles));
-  int totalSlpFiles = numberOfOldSlpFiles + numberOfSlpFiles;
-  out->write(reinterpret_cast<const char*>(&totalSlpFiles),
-             sizeof(DrsTableInfo::num_files));
-  listener->increaseProgress(1); // 25
-
-  listener->log("wav table info");
-  length = sizeof(DrsTableInfo::file_extension);
-  buffer = new char[length];
-  in->read(buffer, length);
-  out->write(buffer, length);
-  in->read(intBuffer, 4);
-  listener->log(intBuffer);
-  int wavInfoOffset = *(reinterpret_cast<int*>(intBuffer)) + extraOffset;
-  out->write(reinterpret_cast<const char*>(&wavInfoOffset),
-             sizeof(DrsTableInfo::file_info_offset));
-  in->read(intBuffer, 4);
-  listener->log(intBuffer);
-  int numberOfOldWavFiles = *(reinterpret_cast<int*>(intBuffer));
-  listener->log(std::to_string(numberOfOldWavFiles));
-  out->write(reinterpret_cast<const char*>(&numberOfOldWavFiles),
-             sizeof(DrsTableInfo::num_files));
-  listener->increaseProgress(1); // 26
-
-  // file infos
-  int fileOffset = 0;
-  int fileSize = 0;
-  int slpBlockSize = 0;
-  int wavBlockSize = 0;
-
-  listener->log("old slp file infos");
-  for (int i = 0; i < numberOfOldSlpFiles; i++) {
-    in->read(intBuffer, 4);
-    int fileId = *(reinterpret_cast<int*>(intBuffer));
-    if (fileId >= 60000 &&
-        (fileId <= 60138 || (fileId >= 70000 && fileId <= 70138) ||
-         (fileId >= 80000 && fileId <= 80017))) {
-      // First if is just a cheaper hardcoded precheck, can be removed if the
-      // function needs to be more general
-      if (slpFiles.count(fileId) > 0) {
-        fileId += 900000; // Doesn't really matter, just a large number that the
-                          // game will never read
+  listener->log("read existing files");
+  // Copy all existing files into the new file
+  // TODO do not allocate all of these at once? Maybe use iterator pairs for the mmapped file?
+  auto tables = reader.read_tables();
+  for (const auto& table : tables) {
+    auto files = reader.read_files(table);
+    for (const auto& file : files) {
+      int fileId = file.id();
+      // Remap some IDs
+      if (fileId >= 60000 &&
+          (fileId <= 60138 || (fileId >= 70000 && fileId <= 70138) ||
+           (fileId >= 80000 && fileId <= 80017))) {
+        // First if is just a cheaper hardcoded precheck, can be removed if the
+        // function needs to be more general
+        if (slpFiles.count(fileId) > 0) {
+          fileId += 900000; // Doesn't really matter, just a large number that the
+                            // game will never read
+        }
       }
+
+      writer.addFile(table.file_type(),
+          fileId,
+          reader.read_file(file));
     }
-    in->read(intBuffer, 4);
-    fileOffset = *(reinterpret_cast<int*>(intBuffer)) + extraOffset;
-    in->read(intBuffer, 4);
-    fileSize = *(reinterpret_cast<int*>(intBuffer));
-    slpBlockSize += fileSize;
-    out->write(reinterpret_cast<const char*>(&fileId),
-               sizeof(DrsFileInfo::file_id));
-    out->write(reinterpret_cast<const char*>(&fileOffset),
-               sizeof(DrsFileInfo::file_data_offset));
-    out->write(reinterpret_cast<const char*>(&fileSize),
-               sizeof(DrsFileInfo::file_size));
   }
-  listener->increaseProgress(1); // 27
-  int offset = fileOffset + fileSize;
 
-  listener->log("new slp file infos");
-
-  std::vector<DrsFileInfo> slpFileInfos;
+  listener->increaseProgress(3); // 24
+  listener->log("add new files");
 
   for (auto& [id, path] : slpFiles) {
-    DrsFileInfo slp;
-    size_t size;
-    size = cfs::file_size(path);
-    slp.file_id = id;
-    slp.file_data_offset = offset;
-    slp.file_size = size;
-    offset += size;
-    slpFileInfos.push_back(slp);
+    writer.addFile(DRSTableType::Slp, id, path);
   }
-  listener->increaseProgress(1); // 28
 
-  for (auto& it : slpFileInfos) {
-    out->write(reinterpret_cast<const char*>(&it.file_id),
-               sizeof(DrsFileInfo::file_id));
-    out->write(reinterpret_cast<const char*>(&it.file_data_offset),
-               sizeof(DrsFileInfo::file_data_offset));
-    out->write(reinterpret_cast<const char*>(&it.file_size),
-               sizeof(DrsFileInfo::file_size));
+  for (auto& [id, path] : wavFiles) {
+    writer.addFile(DRSTableType::Wav, id, path);
   }
-  listener->increaseProgress(1); // 29
+  listener->increaseProgress(1); // 25
 
-  listener->log("wav file infos");
-  for (int i = 0; i < numberOfOldWavFiles; i++) {
-    in->read(intBuffer, 4);
-    int fileId = *(reinterpret_cast<int*>(intBuffer));
-    in->read(intBuffer, 4); // Old offset, not relevant anymore
-    in->read(intBuffer, 4);
-    fileSize = *(reinterpret_cast<int*>(intBuffer));
-    wavBlockSize += fileSize;
-    out->write(reinterpret_cast<const char*>(&fileId),
-               sizeof(DrsFileInfo::file_id));
-    out->write(reinterpret_cast<const char*>(&offset),
-               sizeof(DrsFileInfo::file_data_offset));
-    out->write(reinterpret_cast<const char*>(&fileSize),
-               sizeof(DrsFileInfo::file_size));
-    offset += fileSize;
-  }
-  listener->increaseProgress(1); // 30
-
-  listener->log("old slp files");
-  int bufferSize = 4096;
-  buffer = new char[bufferSize];
-  int i;
-  for (i = bufferSize; i < slpBlockSize; i += bufferSize) {
-    in->read(buffer, bufferSize);
-    out->write(buffer, bufferSize);
-  }
-  length = slpBlockSize - i + bufferSize;
-  in->read(buffer, length);
-  out->write(buffer, length);
-  listener->increaseProgress(1); // 31
+  listener->log("write the whole bunch");
   listener->setInfo("working$\n$workingDrs3");
-
-  listener->log("new slp files");
-  for (auto& it : slpFiles) {
-    std::ifstream srcStream(it.second, std::ios::binary);
-    *out << srcStream.rdbuf();
-    srcStream.close();
-  }
-  listener->increaseProgress(1); // 32
-
-  listener->log("old wav files");
-  buffer = new char[bufferSize];
-  for (i = bufferSize; i < wavBlockSize; i += bufferSize) {
-    in->read(buffer, bufferSize);
-    out->write(buffer, bufferSize);
-  }
-  length = wavBlockSize - i + bufferSize;
-  in->read(buffer, length);
-  out->write(buffer, length);
-  listener->increaseProgress(1); // 33
-
-  in->close();
-  out->close();
+  writer.commit();
+  listener->increaseProgress(8); // 33
 }
 
 void WKConverter::copyCivIntroSounds(const fs::path& inputDir,
@@ -2652,12 +2523,9 @@ int WKConverter::run() {
          */
         indexDrsFiles(slpCompatDir);
         fs::remove(settings.vooblyDir / "data" / "gamedata_x1_p1.drs");
-        std::ifstream oldDrs(settings.vooblyDir.parent_path() / dlcLevelName /
-                                 "data" / "gamedata_x1_p1.drs",
-                             std::ios::binary);
         std::ofstream newDrs(settings.vooblyDir / "data" / "gamedata_x1_p1.drs",
                              std::ios::binary);
-        editDrs(&oldDrs, &newDrs);
+        editDrs(settings.vooblyDir.parent_path() / dlcLevelName / "data" / "gamedata_x1_p1.drs", newDrs);
       }
     }
     if (settings.useBoth || settings.useExe) {
@@ -2689,12 +2557,9 @@ int WKConverter::run() {
         } else {
           indexDrsFiles(slpCompatDir);
           fs::remove(settings.upDir / "data" / "gamedata_x1_p1.drs");
-          std::ifstream oldDrs(settings.upDir.parent_path() / dlcLevelName /
-                                   "data" / "gamedata_x1_p1.drs",
-                               std::ios::binary);
           std::ofstream newDrs(settings.upDir / "data" / "gamedata_x1_p1.drs",
                                std::ios::binary);
-          editDrs(&oldDrs, &newDrs);
+          editDrs(settings.upDir.parent_path() / dlcLevelName / "data" / "gamedata_x1_p1.drs", newDrs);
         }
       }
     }

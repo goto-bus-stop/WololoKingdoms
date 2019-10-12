@@ -154,7 +154,7 @@ private:
   static void makeRandomMapScriptsDrs(std::ofstream& out,
                                       const fs::path& drsDir);
   void makeDrs(std::ofstream& out);
-  void editDrs(std::ifstream* in, std::ofstream* out);
+  void editDrs(fs::path input_path, std::ostream& out);
   static void copyCivIntroSounds(const fs::path& inputDir,
                                  const fs::path& outputDir);
   void copyWallFiles(const fs::path& inputDir);

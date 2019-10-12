@@ -15,6 +15,8 @@ inline void DRSCreatorTableEntry::writeContent(std::ostream& target) {
   offset_ = target.tellp();
   if (stream_ != nullptr) {
     target << stream_->rdbuf();
+  } else if (bytes_) {
+    target.write(bytes_->data(), bytes_->size());
   } else {
     std::ifstream stream(filename_, std::ios::binary);
     target << stream.rdbuf();

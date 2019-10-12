@@ -10,3 +10,6 @@
 [submodule "libwololokingdoms/third_party/compile-time-regular-expressions"]
 	path = libwololokingdoms/third_party/compile-time-regular-expressions
 	url = https://github.com/hanickadot/compile-time-regular-expressions
+[submodule "libwololokingdoms/third_party/mio"]
+	path = libwololokingdoms/third_party/mio
+	url = https://github.com/mandreyel/mio
