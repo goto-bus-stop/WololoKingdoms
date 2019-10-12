@@ -9,9 +9,9 @@
 
 struct DRSReaderHeader {
 private:
-  char copyright_[40];
-  char version_[4];
-  char password_[12];
+  std::array<char, 40> copyright_;
+  std::array<char, 4> version_;
+  std::array<char, 12> password_;
   int32_t num_tables_;
   int32_t files_offset_;
 
@@ -19,9 +19,9 @@ public:
   DRSReaderHeader() = default;
   DRSReaderHeader(const DRSReaderHeader&) = default;
 
-  [[nodiscard]] std::string_view copyright() const { return copyright_; }
-  [[nodiscard]] std::string_view version() const { return version_; }
-  [[nodiscard]] std::string_view password() const { return password_; }
+  [[nodiscard]] std::string_view copyright() const { return {copyright_.data(), copyright_.size()}; }
+  [[nodiscard]] std::string_view version() const { return {version_.data(), version_.size()}; }
+  [[nodiscard]] std::string_view password() const { return {password_.data(), password_.size()}; }
   [[nodiscard]] int32_t num_tables() const { return num_tables_; }
   [[nodiscard]] int32_t files_offset() const { return files_offset_; }
 };
