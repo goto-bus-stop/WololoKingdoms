@@ -78,6 +78,7 @@ set(ALL_SRC
     string_helpers.cpp
     zr_map_creator.cpp
     drs_creator.cpp
+    drs_reader.cpp
     missing_strings.cpp
     fixes/ai900unitidfix.cpp
     fixes/berbersutfix.cpp
