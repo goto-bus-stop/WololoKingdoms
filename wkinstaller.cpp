@@ -2,26 +2,10 @@
 #include "libwololokingdoms/caseless.h"
 #include <QProcess>
 #include <QString>
-#include <cgenie/scx.h>
 
 WKInstaller::WKInstaller(WKSettings& settings) : settings(settings) {}
 
 void WKInstaller::process() {
-  auto postInstall = [this]() {
-    auto rmsDir = cfs::resolve(this->settings.hdPath /
-                               "resources/_common/drs/gamedata_x2");
-    auto scx = cgscx_load((rmsDir / "special_map_yinyang.scx").c_str());
-    if (scx == nullptr)
-      printf("reading scx failed: %s\n",
-             (rmsDir / "special_map_yinyang.scx").c_str());
-    printf("convert %d\n", cgscx_convert_hd_to_wk(scx));
-    printf("save %d\n", cgscx_save(scx, CGSCX_VERSION_WK, "/tmp/test.scx"));
-  };
-
-  postInstall();
-  emit finished();
-  return;
-
   converter = std::make_unique<WKConverter>(settings, this);
   try {
     converter->run();
@@ -33,8 +17,6 @@ void WKInstaller::process() {
       converter->retryInstall();
     } catch (const std::exception& e) {
       error(e, true);
-
-      postInstall();
 
       emit finished();
       emit setInfo("error");

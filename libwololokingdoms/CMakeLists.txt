@@ -23,6 +23,11 @@ endif()
 if (WK_STATIC_BUILD)
   set(GENIEUTILS_STATIC_BUILD 1)
 endif()
+# set -DWK_EXTERNAL_GENIE_RS if the application libwololokingdoms will be part of
+# will provide the cgscx symbols.
+if (NOT WK_EXTERNAL_GENIE_RS)
+  set(FIND_GENIE_RS 1)
+endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genieutils/)
 
@@ -60,6 +65,26 @@ endif()
 if (WIN32)
   add_compile_definitions(UNICODE)
   add_compile_definitions(_UNICODE)
+endif()
+
+# Find genie-scx for scenario conversion
+if (FIND_GENIE_RS)
+  if (WIN32)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/include)
+    # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
+    add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll)
+  else()
+    set(GENIE_RS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../genie-rs)
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/libcgenie_scx.a
+                       WORKING_DIRECTORY ${GENIE_RS_DIR}
+                       COMMAND cargo build -p cgenie-scx --release
+                       COMMAND cp target/release/libcgenie_scx.a ${CMAKE_BINARY_DIR}
+    )
+    add_custom_target(cgenie-scx DEPENDS ${CMAKE_BINARY_DIR}/libcgenie_scx.a)
+    set(CGENIE_OBJECT ${CMAKE_BINARY_DIR}/libcgenie_scx.a)
+    include_directories(${GENIE_RS_DIR}/c/include)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------#
@@ -112,9 +137,18 @@ set(ALL_SRC
 if (WK_STATIC_BUILD)
   message(STATUS "Building libwololokingdoms as static library")
   add_library(${Wololokingdoms_LIBRARY} STATIC ${ALL_SRC})
+
+  # Add in scx conversion code
+  add_dependencies(${Wololokingdoms_LIBRARY} cgenie-scx)
+  target_link_libraries(${Wololokingdoms_LIBRARY} ${CGENIE_OBJECT})
+  if (UNIX)
+    # required on linux!
+    target_link_libraries(${Wololokingdoms_LIBRARY} dl pthread)
+  endif()
 else()
   add_library(${Wololokingdoms_LIBRARY} SHARED ${ALL_SRC})
-  target_link_libraries(${Wololokingdoms_LIBRARY} genieutils)
+  add_dependencies(${Wololokingdoms_LIBRARY} cgenie-scx)
+  target_link_libraries(${Wololokingdoms_LIBRARY} genieutils cgenie_scx)
 
   install(TARGETS ${Wololokingdoms_LIBRARY}
     LIBRARY DESTINATION lib

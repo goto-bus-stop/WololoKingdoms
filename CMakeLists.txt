@@ -81,23 +81,6 @@ if (NOT WORKING_STD_FS)
   add_definitions(-DUSE_USERLAND_FS)
 endif()
 
-# Find genie-scx for scenario conversion
-if (WIN32)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/include)
-  # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
-  add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll)
-else()
-  set(GENIE_RS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../genie-rs)
-  add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libcgenie_scx.so
-                     WORKING_DIRECTORY ${GENIE_RS_DIR}
-                     COMMAND cargo build -p cgenie-scx --release
-                     COMMAND cp target/release/libcgenie_scx.so ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-  )
-  add_custom_target(cgenie-scx DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libcgenie_scx.so)
-  include_directories(${GENIE_RS_DIR}/c/include)
-endif()
-
 if (WIN32)
   add_definitions(-DNOMINMAX)
   add_definitions(-DWIN32_LEAN_AND_MEAN)
@@ -143,15 +126,11 @@ if(ENABLE_LTO)
   set_property(TARGET ${Wololokingdoms_INSTALLER} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-add_dependencies(${Wololokingdoms_INSTALLER} cgenie-scx)
-
 target_link_libraries(${Wololokingdoms_INSTALLER} wololokingdoms)
 target_link_libraries(${Wololokingdoms_INSTALLER} genieutils)
-target_link_libraries(${Wololokingdoms_INSTALLER} cgenie_scx)
 if (WORKING_STD_FS)
   target_link_libraries(${Wololokingdoms_INSTALLER} stdc++fs)
 endif()
-# target_link_libraries(${Wololokingdoms_INSTALLER} cgenie_scx)
 target_link_libraries(${Wololokingdoms_INSTALLER} ${Steam_API_NAME})
 
 # Use the Widgets module from Qt 5

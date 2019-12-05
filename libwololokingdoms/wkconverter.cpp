@@ -36,6 +36,7 @@
 #include "wololo/datPatch.h"
 #include "zr_map_creator.h"
 #include <cctype>
+#include <cgenie/scx.h>
 #include <fs.h>
 #include <fstream>
 #include <genie/dat/DatFile.h>
@@ -730,6 +731,24 @@ void WKConverter::createMusicPlaylist(const fs::path& inputDir,
   outputFile.close();
 }
 
+void convertHDScenario(const fs::path& input, const fs::path& output) {
+  std::cout << "reading: " << input.c_str() << '\n';
+  auto scx = cgscx_load(input.c_str());
+  if (scx == nullptr) {
+    throw std::runtime_error("Could not read SCX file");
+  }
+  if (cgscx_convert_hd_to_wk(scx) != cgscxOk) {
+    throw std::runtime_error("SCX conversion failed");
+  }
+  if (cgscx_save(scx, CGSCX_VERSION_WK, output.c_str()) != cgscxOk) {
+    throw std::runtime_error("Could not save SCX file");
+  }
+}
+
+bool starts_with(std::string_view haystack, std::string_view needle) {
+  return haystack.substr(0, needle.size()) == needle;
+}
+
 void WKConverter::copyHDMaps(const fs::path& inputDir,
                              const fs::path& outputDir, bool replace) {
   static const std::array<std::map<int, std::regex>, 6> terrainsPerType = {
@@ -852,6 +871,9 @@ void WKConverter::copyHDMaps(const fs::path& inputDir,
       {24, "15018.slp"}, {25, "15019.slp"}, {35, "15024.slp"},
       {39, "15031.slp"}, {40, "15033.slp"}};
 
+  fs::path assetsPath =
+      settings.hdPath / "resources" / "_common" / "drs" / "gamedata_x2";
+
   // Find all maps to be converted
   std::vector<fs::path> mapNames;
   for (const auto& it : fs::directory_iterator(resolve_path(inputDir))) {
@@ -872,12 +894,11 @@ void WKConverter::copyHDMaps(const fs::path& inputDir,
      * option is set to true. Else skip that map.
      */
     std::string mapName = it.stem().string() + ".rms";
-    std::string mapPrefix = mapName.substr(0, 3);
-    if (mapPrefix == "ZR@") {
+    if (starts_with(mapName, "ZR@")) {
       cfs::copy_file(it, outputDir / mapName,
                      fs::copy_options::update_existing);
       continue;
-    } else if (mapPrefix == "es_") {
+    } else if (starts_with(mapName, "es_")) {
       continue; // These maps are already added to Voobly with the es@ prefix,
                 // no need to have this twice
     }
@@ -1016,12 +1037,19 @@ void WKConverter::copyHDMaps(const fs::path& inputDir,
     std::ofstream out(outputDir.string() + "/" + mapName);
     out << map;
     out.close();
-    if (mapName.substr(0, 3) == "rw_" || mapName.substr(0, 3) == "sm_") {
+    std::optional<fs::path> convertedScxFile;
+    if (starts_with(mapName, "real_world_") || starts_with(mapName, "special_map_")) {
       std::string scenarioFile = it.stem().string() + ".scx";
-      terrainOverrides[scenarioFile] = resolve_path(inputDir / scenarioFile);
+      auto input = resolve_path(assetsPath / scenarioFile);
+      convertedScxFile = resolve_path(outputDir / ("_wkconv_" + scenarioFile));
+      convertHDScenario(input, convertedScxFile.value());
+      terrainOverrides[scenarioFile] = convertedScxFile.value();
     }
     if (terrainOverrides.size() != 0) {
       createZRmap(terrainOverrides, outputDir, mapName);
+    }
+    if (convertedScxFile) {
+      fs::remove(convertedScxFile.value());
     }
     terrainOverrides.clear();
   }
@@ -2522,8 +2550,7 @@ int WKConverter::run() {
 
     if (settings.copyCustomMaps) {
       listener->log("Copy HD Maps");
-      copyHDMaps(settings.hdPath / "resources" / "_common" /
-                     "random-map-scripts",
+      copyHDMaps(settings.hdPath / "resources" / "_common" / "random-map-scripts",
                  installMapDir);
     } else {
       listener->increaseProgress(3); // 18
@@ -2532,7 +2559,7 @@ int WKConverter::run() {
 
     listener->log("Copy Special Maps");
     if (settings.copyMaps) {
-      copyHDMaps(resourceDir / "Script.Rm", installMapDir, true);
+      copyHDMaps(assetsPath, installMapDir, true);
     } else {
       listener->increaseProgress(3);
     }
