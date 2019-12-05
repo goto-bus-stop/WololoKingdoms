@@ -83,10 +83,10 @@ endif()
 
 # Find genie-scx for scenario conversion
 if (WIN32)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/include)
-  # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
-  add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/genie-rs/libs/cgenie_scx.dll)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/include)
+  # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
+  add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll)
 else()
   set(GENIE_RS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../genie-rs)
   add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libcgenie_scx.so

@@ -8,11 +8,14 @@ WKInstaller::WKInstaller(WKSettings& settings) : settings(settings) {}
 
 void WKInstaller::process() {
   auto postInstall = [this]() {
-    auto rmsDir = cfs::resolve(this->settings.hdPath/"resources/_common/drs/gamedata_x2");
-    auto scx = cgscx_load((rmsDir/"special_map_yinyang.scx").c_str());
-    if (scx == nullptr) printf("reading scx failed: %s\n", (rmsDir/"special_map_yinyang.scx").c_str());
+    auto rmsDir = cfs::resolve(this->settings.hdPath /
+                               "resources/_common/drs/gamedata_x2");
+    auto scx = cgscx_load((rmsDir / "special_map_yinyang.scx").c_str());
+    if (scx == nullptr)
+      printf("reading scx failed: %s\n",
+             (rmsDir / "special_map_yinyang.scx").c_str());
     printf("convert %d\n", cgscx_convert_hd_to_wk(scx));
-    printf("save %d\n", cgscx_save(scx, "/tmp/test.scx"));
+    printf("save %d\n", cgscx_save(scx, CGSCX_VERSION_WK, "/tmp/test.scx"));
   };
 
   postInstall();
@@ -39,11 +42,11 @@ void WKInstaller::process() {
   }
 }
 
-void WKInstaller::error(std::exception const& err, bool showDialog) { 
+void WKInstaller::error(std::exception const& err, bool showDialog) {
   std::string errorMessage = err.what();
   if (showDialog)
-	emit createDialog("dialogError$" + errorMessage, "Error");
-  emit log(errorMessage); 
+    emit createDialog("dialogError$" + errorMessage, "Error");
+  emit log(errorMessage);
 }
 
 void WKInstaller::installUserPatch(fs::path exePath,
