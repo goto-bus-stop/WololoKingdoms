@@ -1034,17 +1034,25 @@ void WKConverter::copyHDMaps(const fs::path& inputDir,
       terrainOverrides["15022.slp"] = newTerrainFiles.at("15022.slp");
       terrainOverrides["15023.slp"] = newTerrainFiles.at("15023.slp");
     }
+
+    auto isRealWorld = starts_with(mapName, "real_world_");
+    auto isSpecialMap = starts_with(mapName, "special_map_");
+    // Make the names shorter so you can actually see them in the menu
+    if (isRealWorld) mapName.replace(0, strlen("real_world"), "rw");
+    if (isSpecialMap) mapName.replace(0, strlen("special_map"), "sm");
+
     std::ofstream out(outputDir.string() + "/" + mapName);
     out << map;
     out.close();
     std::optional<fs::path> convertedScxFile;
-    if (starts_with(mapName, "real_world_") || starts_with(mapName, "special_map_")) {
+    if (isRealWorld || isSpecialMap) {
       std::string scenarioFile = it.stem().string() + ".scx";
       auto input = resolve_path(assetsPath / scenarioFile);
       convertedScxFile = resolve_path(outputDir / ("_wkconv_" + scenarioFile));
       convertHDScenario(input, convertedScxFile.value());
       terrainOverrides[scenarioFile] = convertedScxFile.value();
     }
+
     if (terrainOverrides.size() != 0) {
       createZRmap(terrainOverrides, outputDir, mapName);
     }
