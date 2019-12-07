@@ -42,6 +42,7 @@
 #include <genie/dat/DatFile.h>
 #include <genie/lang/LangFile.h>
 #include <map>
+#include <optional>
 #include <string>
 
 // this copy is unfortunate but cfs::resolve returns a temporary :/
