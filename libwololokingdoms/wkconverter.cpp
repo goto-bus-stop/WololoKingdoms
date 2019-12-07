@@ -732,7 +732,6 @@ void WKConverter::createMusicPlaylist(const fs::path& inputDir,
 }
 
 void convertHDScenario(const fs::path& input, const fs::path& output) {
-  std::cout << "reading: " << input.c_str() << '\n';
   auto scx = cgscx_load(input.c_str());
   if (scx == nullptr) {
     throw std::runtime_error("Could not read SCX file");
