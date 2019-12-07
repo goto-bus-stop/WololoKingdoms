@@ -70,19 +70,20 @@ endif()
 # Find genie-scx for scenario conversion
 if (FIND_GENIE_RS)
   if (WIN32)
+    # Use prebuilt static libraries on Windows
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/include)
-    # link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cgenie_scx.dll COPYONLY)
-    add_custom_target(cgenie-scx DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.dll)
+    set(CGENIE_OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cgenie/libs/cgenie_scx.lib)
+    add_custom_target(cgenie-scx DEPENDS ${CGENIE_OBJECT})
   else()
+    # Build it locally on Linux
     set(GENIE_RS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../genie-rs)
     add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/libcgenie_scx.a
                        WORKING_DIRECTORY ${GENIE_RS_DIR}
                        COMMAND cargo build -p cgenie-scx --release
                        COMMAND cp target/release/libcgenie_scx.a ${CMAKE_BINARY_DIR}
     )
-    add_custom_target(cgenie-scx DEPENDS ${CMAKE_BINARY_DIR}/libcgenie_scx.a)
     set(CGENIE_OBJECT ${CMAKE_BINARY_DIR}/libcgenie_scx.a)
+    add_custom_target(cgenie-scx DEPENDS ${CGENIE_OBJECT})
     include_directories(${GENIE_RS_DIR}/c/include)
   endif()
 endif()
