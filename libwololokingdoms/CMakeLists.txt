@@ -149,7 +149,7 @@ if (WK_STATIC_BUILD)
   target_link_libraries(${Wololokingdoms_LIBRARY} ${CGENIE_OBJECT})
   # libraries used by cgenie-scx
   if (WIN32)
-    target_link_libraries(${Wololokingdoms_LIBRARY} ws2_32) # why?  this is all for TcpStream which is not used
+    target_link_libraries(${Wololokingdoms_LIBRARY} ws2_32 userenv) # why?  this is all for TcpStream which is not used
   endif()
   if (UNIX)
     target_link_libraries(${Wololokingdoms_LIBRARY} dl pthread)
